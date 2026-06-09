@@ -1366,12 +1366,10 @@ function _buildCombatGrid(pDice, blockDice, eDice, eDefDice, defeated) {
   // enemy defense pool — spinning dice if they split, otherwise flat armor display
   const flatBlk  = Math.floor(CB.m.def / 6);
   const hasEDef  = eDefDice && eDefDice.length > 0;
-  const edPool   = hasEDef
+  const edPool = hasEDef
     ? eDefDice.map((_,i) => _make3DDie(`dr-ed-${i}`)).join('')
-    : (flatBlk > 0
-        ? `<div style="font-size:18px;line-height:1">🛡️</div><div style="font-size:10px;font-weight:700;color:var(--muted)">${flatBlk} block</div>`
-        : `<span style="font-size:11px;color:var(--muted)">none</span>`);
-  const edLbl = (hasEDef && flatBlk > 0) ? `🛡️ Armor +${flatBlk} block` : '';
+    : `<span style="font-size:11px;color:var(--muted)">—</span>`;
+  const edLbl  = flatBlk > 0 ? `🛡️ Armor +${flatBlk} block` : '';
 
   // flat-damage modifiers only (weapon ATK adds dice, not flat damage → omit)
   const armorFlatBlk = Math.floor(G.armor.def / 6);
@@ -1615,6 +1613,9 @@ function cAttack(diceCount) {
   const isLight = diceCount === 1;
   const cost    = diceCount * ST_HEAVY_PER;
 
+  // Capture available dice BEFORE stamina changes, so unused dice calculation is correct
+  const availDicePreCost = Math.min(nDice(pCombat()), Math.floor(CB.stamina / 6));
+
   if (isLight) {
     CB.stamina = Math.min(G.maxStam, CB.stamina + ST_LIGHT_RESTORE);
   } else {
@@ -1639,8 +1640,7 @@ function cAttack(diceCount) {
   const defeated = CB.mHp <= 0;
   let eDice = [], ed = null, eTaken = 0, diceBlock = 0, blockDice = [];
   if (!defeated) {
-    const availDice  = Math.min(nDice(pCombat()), Math.floor(CB.stamina / 6));
-    const unusedDice = Math.max(0, availDice - diceCount);
+    const unusedDice = Math.max(0, availDicePreCost - diceCount);
     blockDice        = unusedDice > 0 ? rollArr(unusedDice) : [];
     diceBlock        = blockDice.reduce((a, b) => a + b, 0);
     eDice            = rollArr(eAtkCount);  // only the attack-allocated dice
