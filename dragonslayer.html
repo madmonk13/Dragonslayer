@@ -449,7 +449,7 @@ body {
     <button class="btn btn-blue"   onclick="gotoMarket()">🛒 Market</button>
   </div>
   <div class="row">
-    <button class="btn btn-green"  id="btn-rest" onclick="rest()">😴 Rest (18g)</button>
+    <button class="btn btn-green"  id="btn-rest" onclick="openRestModal()">😴 Rest</button>
     <button class="btn btn-purple" onclick="gotoTravel()">🗺️ Travel</button>
   </div>
   <div class="row">
@@ -609,6 +609,34 @@ body {
 
   <div class="card" id="tr-content" style="flex:1;overflow-y:auto"></div>
 
+</div>
+
+<!-- ══════════════ REST MODAL ══════════════ -->
+<div class="overlay" id="rest-modal" onclick="if(event.target===this)closeRestModal()">
+  <div class="modal" style="padding:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h2 style="margin:0">😴 Rest</h2>
+      <button class="btn btn-gray" style="padding:4px 12px;font-size:13px;flex-shrink:0;width:auto" onclick="closeRestModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="cb-box" style="align-items:flex-start;gap:6px">
+        <div style="font-size:15px;font-weight:700">🏨 Inn</div>
+        <div style="font-size:12px;color:var(--muted)">Room &amp; meal included. Fully restores HP.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:4px">
+          <span style="font-size:13px;color:var(--gold);font-weight:700" id="rest-inn-cost">—</span>
+          <button class="btn btn-green" id="btn-rest-inn" style="width:auto;padding:6px 14px;font-size:13px" onclick="restInn()">Rest at Inn</button>
+        </div>
+      </div>
+      <div class="cb-box" style="align-items:flex-start;gap:6px">
+        <div style="font-size:15px;font-weight:700">🌿 Countryside</div>
+        <div style="font-size:12px;color:var(--muted)">Hunt for a meal. Restores half HP. Risk of encounter.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:4px">
+          <span style="font-size:12px;color:var(--muted)">Free</span>
+          <button class="btn btn-gray" style="width:auto;padding:6px 14px;font-size:13px" onclick="restCountryside()">Rest Outdoors</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════ JOURNAL MODAL ══════════════ -->
@@ -850,7 +878,9 @@ function syncKingdom() {
   eid('k-desc').textContent = k.desc;
   eid('k-mon').textContent  = k.monsters.map(m => MONSTERS[m].name).join(', ');
   eid('btn-dragon').style.display = k.id === 'ashenvale' ? '' : 'none';
-  eid('btn-rest').disabled = G.hp >= G.maxHp;
+  const restBtn = eid('btn-rest');
+  restBtn.disabled    = G.hp >= G.maxHp;
+  restBtn.textContent = '😴 Rest';
   renderLog();
 }
 
@@ -865,15 +895,52 @@ function newGame() {
   gotoKingdom();
 }
 
-function rest() {
+function innCost() {
+  return (G.kingdom.tier || 1) * 12;  // tier1=12g, tier2=24g, tier3=36g
+}
+
+function openRestModal() {
   if (G.hp >= G.maxHp) return;
-  if (G.gold < 18) { addLog('❌ Need 18 gold to rest at the inn.', 'lbad'); syncKingdom(); return; }
-  G.gold -= 18;
-  const heal = Math.min(18, G.maxHp - G.hp);
-  G.hp += heal;
-  addLog(`💤 Rested at the inn — healed ${heal} HP. (−18 gold)`, 'lok');
+  const cost = innCost();
+  eid('rest-inn-cost').textContent = `${cost}g`;
+  eid('btn-rest-inn').disabled = G.gold < cost;
+  eid('rest-modal').classList.add('on');
+}
+
+function closeRestModal() {
+  eid('rest-modal').classList.remove('on');
+}
+
+function restInn() {
+  const cost = innCost();
+  if (G.gold < cost) return;
+  G.gold -= cost;
+  G.hp = G.maxHp;
+  addLog(`🏨 Rested at the inn — fully healed. (−${cost}g)`, 'lok');
+  closeRestModal();
   syncKingdom();
   flash('bar-hp', true); flashGold('p-gold');
+}
+
+function restCountryside() {
+  closeRestModal();
+  const heal = Math.min(Math.floor(G.maxHp / 2), G.maxHp - G.hp);
+  G.hp += heal;
+  if (Math.random() < 0.40) {
+    const pool = [...G.kingdom.monsters, 'bandit'];
+    const pick  = pool[Math.floor(Math.random() * pool.length)];
+    const mData = { ...(MONSTERS[pick] || MONSTERS.bandit) };
+    addLog(`🌿 Rested outdoors — healed ${heal} HP. A ${mData.name} attacks!`, 'lbad');
+    beginCombat(mData, false);
+  } else {
+    addLog(`🌿 Rested outdoors — healed ${heal} HP. Quiet night.`, 'lok');
+    syncKingdom();
+    flash('bar-hp', true);
+  }
+}
+
+function rest() {  // legacy stub — replaced by openRestModal
+  openRestModal();
 }
 
 function explore() {
@@ -1540,6 +1607,66 @@ function showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defea
   setTimeout(() => { _landCombatGrid(pDice, pd, blockDice, defeated ? [] : eDice, defeated ? [] : eDefDice, ed, eTaken, defeated); }, ROLL_MS);
 }
 
+function showFleeResult(eDice, ed, fleeDefDice, taken, escaped) {
+  const flatBlk = Math.floor(CB.m.def / 6);
+  const edDisp  = flatBlk > 0
+    ? `<div style="font-size:18px;line-height:1">🛡️</div><div style="font-size:10px;font-weight:700;color:var(--muted)">${flatBlk} block</div>`
+    : `<span style="font-size:11px;color:var(--muted)">none</span>`;
+  const pdPool  = fleeDefDice.map((_,i) => _make3DDie(`dr-flpd-${i}`)).join('');
+  const armorBlk = Math.floor(G.armor.def / 6);
+
+  eid('dice-zone').innerHTML = `<div class="cb-grid">
+    <div class="cb-box">
+      <div class="cb-hd">💨 Flee</div>
+      <div class="cb-pool" style="min-height:32px"><span style="font-size:11px;color:var(--muted)">—</span></div>
+    </div>
+    <div class="cb-box" id="cb-fl-ea">
+      <div class="cb-hd">⚔️ Enemy Attack</div>
+      <div class="cb-pool">${eDice.map((_,i) => _make3DDie(`dr-fl-${i}`)).join('')}</div>
+    </div>
+    <div class="cb-box" id="cb-fl-pd">
+      <div class="cb-hd">🛡️ Your Defense</div>
+      <div class="cb-pool">${pdPool}</div>
+      ${armorBlk > 0 ? `<div class="cb-lbl">🛡️ Armor +${armorBlk} block</div>` : ''}
+    </div>
+    <div class="cb-box">
+      <div class="cb-hd">🛡️ Enemy Defense</div>
+      <div class="cb-pool" style="min-height:32px">${edDisp}</div>
+    </div>
+    <div class="cb-sum" id="cb-fl-ps" style="opacity:.3">—</div>
+    <div class="cb-sum" id="cb-fl-es" style="opacity:.3">—</div>
+  </div>`;
+
+  const bz = eid('breakdown-zone'); if (bz) bz.style.display = 'none';
+  eDice.forEach((_,i)       => { const d = eid(`dr-fl-${i}`);   if(d) _startDieSpin(d); });
+  fleeDefDice.forEach((_,i) => { const d = eid(`dr-flpd-${i}`); if(d) _startDieSpin(d); });
+
+  setTimeout(() => {
+    let delay = 0;
+    fleeDefDice.forEach((v,i) => { const d = eid(`dr-flpd-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
+    eDice.forEach((v,i)       => { const d = eid(`dr-fl-${i}`);   if(d) { _landDie3D(d,v,delay); delay+=60; }});
+    setTimeout(() => {
+      const ps = eid('cb-fl-ps'), es = eid('cb-fl-es');
+      if (ps) {
+        ps.textContent = escaped ? '💨 Escaped!' : '— failed to flee —';
+        ps.style.opacity = '';
+        if (escaped) ps.className = 'cb-sum p-win';
+      }
+      if (es) {
+        es.textContent = ed.block > 0
+          ? `${ed.raw} − ${ed.block} = ${taken} taken`
+          : `${taken} taken`;
+        es.style.opacity = '';
+        es.className = 'cb-sum' + (taken > 0 ? ' e-win' : ' p-win');
+      }
+      const ea  = eid('cb-fl-ea');
+      const pd_ = eid('cb-fl-pd');
+      if (ea)  ea.className  = 'cb-box' + (taken > 0 ? ' lose' : ' win');
+      if (pd_) pd_.className = 'cb-box' + (escaped ? ' win' : '');
+    }, SETTLE_MS);
+  }, ROLL_MS);
+}
+
 function showDefendResult(eDice, ed, defDice, taken) {
   const flatBlk = Math.floor(CB.m.def / 6);
   const edDisp  = flatBlk > 0
@@ -1650,10 +1777,13 @@ function cAttack(diceCount) {
   }
 
   showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defeated);
-  syncCombatBars();
-  flash('bar-ehp', false);
-  if (eTaken > 0) flash('bar-php', false);
-  flash('bar-st', isLight);
+
+  setTimeout(() => {
+    syncCombatBars();
+    flash('bar-ehp', false);
+    if (eTaken > 0) flash('bar-php', false);
+    flash('bar-st', isLight);
+  }, ROLL_MS + SETTLE_MS);
 
   if (CB.mHp <= 0) { setTimeout(combatWin, 1475); return; }
   if (G.hp   <= 0) { setTimeout(combatLose, 1475); return; }
@@ -1675,9 +1805,12 @@ function cDefend() {
   G.hp = Math.max(0, G.hp - taken);
 
   showDefendResult(eDice, ed, defDice, taken);
-  syncCombatBars();
-  flash('bar-st', true);
-  if (taken > 0) flash('bar-php', false);
+
+  setTimeout(() => {
+    syncCombatBars();
+    flash('bar-st', true);
+    if (taken > 0) flash('bar-php', false);
+  }, ROLL_MS + SETTLE_MS);
 
   if (G.hp <= 0) { setTimeout(combatLose, 1475); return; }
   setTimeout(unlockCombat, ROLL_MS + SETTLE_MS + 80);
@@ -1705,20 +1838,34 @@ function cPotion() {
 
 function cFlee() {
   if (CB.over || CB.boss) return;
-  if (Math.random() >= 0.45) {
+  lockCombat();
+
+  // All available dice go to defense; minimum 1 die even at 0 stamina
+  const availDice   = Math.max(1, Math.min(nDice(pCombat()), Math.floor(CB.stamina / 6)));
+  const fleeDefDice = rollArr(availDice);
+  const diceBlock   = fleeDefDice.reduce((a,b) => a+b, 0);
+
+  const eDice = rollArr(nDice(CB.m.atk));
+  const ed    = enemyDetail(eDice, diceBlock);
+  const taken = ed.dmg;
+
+  if (taken === 0) {
     CB.over = true;
+    G.hp = Math.max(0, G.hp - taken);
     clog('💨 You managed to escape!');
     addLog(`💨 Fled from the ${CB.m.name}.`, 'lbad');
-    lockCombat();
-    setTimeout(gotoKingdom, 1100);
+    showFleeResult(eDice, ed, fleeDefDice, taken, true);
+    setTimeout(gotoKingdom, ROLL_MS + SETTLE_MS + 600);
   } else {
-    const eDice = rollArr(nDice(CB.m.atk));
-    const eDmg  = calcEnemyDmg(eDice);
-    G.hp = Math.max(0, G.hp - eDmg);
-    clog(`Failed to flee! ${CB.m.name} hits for ${eDmg} damage.`);
-    syncCombatBars();
+    G.hp = Math.max(0, G.hp - taken);
+    clog(`Failed to flee! ${CB.m.name} hits for ${taken} damage.`);
+    showFleeResult(eDice, ed, fleeDefDice, taken, false);
+    setTimeout(() => {
+      syncCombatBars();
+      if (taken > 0) flash('bar-php', false);
+    }, ROLL_MS + SETTLE_MS);
     if (G.hp <= 0) { setTimeout(combatLose, 1475); return; }
-    unlockCombat();
+    setTimeout(unlockCombat, ROLL_MS + SETTLE_MS + 80);
   }
 }
 
