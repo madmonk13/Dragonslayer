@@ -428,6 +428,7 @@ body {
       <div style="display:flex;flex-direction:column;gap:5px">
         <span>⚔️ <span id="p-cbt" style="color:var(--text)">6, 1 die</span></span>
         <span>⚡ <span id="p-stam" style="color:var(--text)">24 max</span></span>
+        <span>💚 <span id="p-res" style="color:var(--text)">6 resilience</span></span>
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px">
@@ -742,12 +743,10 @@ const POTION_COST = 30;
 const POTION_HEAL = 42;
 
 // Stamina constants — all multiples of 6 (one die = 6)
-// Pattern: 0 dice (defend) = +12, 1 die (light) = +6, N dice (heavy) = −N×6
-const ST_LIGHT_RESTORE = 6;   // stamina gained by light attack
-const ST_HEAVY_PER     = 6;   // stamina cost per die for heavy attack
-const ST_DEFEND        = 12;  // stamina restored by defend
-const ST_BASE          = 24;  // starting max stamina
-const ST_UPGRADE       = 12;  // max stamina per vitality perk
+// Attacking costs 6 per die; Defending costs 0. Resilience restores stamina each turn.
+const ST_HEAVY_PER = 6;   // stamina cost per die for all attacks
+const ST_BASE      = 24;  // starting max stamina
+const ST_UPGRADE   = 12;  // max stamina per vitality perk
 
 // ═══════════════════════════════════════════════════
 //  STATE
@@ -763,8 +762,9 @@ function initState() {
     hp: 36, maxHp: 36,
     xp: 0,
     baseCombat: 6,
+    resilience: 6,
     maxStam: ST_BASE,
-    trainCount: { combat:0, hp:0, stam:0 },
+    trainCount: { combat:0, hp:0, stam:0, resilience:0 },
     weapon: WEAPONS[0], armor: ARMORS[0],
     potions: 2,
     kingdom: KINGDOMS[0],
@@ -870,9 +870,10 @@ function syncKingdom() {
   eid('p-cbt').textContent = `${cbtVal}, ${cbtDice} ${cbtDice === 1 ? 'die' : 'dice'}`;
   eid('p-arm').textContent  = G.armor.name;
   eid('p-stam').textContent = `${G.maxStam} max`;
+  eid('p-res').textContent  = `${G.resilience} resilience`;
   eid('p-wpn').textContent  = G.weapon.name;
   eid('p-pot').textContent  = `${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
-  const cheapest = Math.min(...['combat','hp','stam'].map(s => trainCost(s)));
+  const cheapest = Math.min(...['combat','hp','stam','resilience'].map(s => trainCost(s)));
   eid('p-xp').textContent   = G.xp;
   eid('bar-xp').style.width = pct(G.xp, cheapest);
   const canTrain = canAffordAnyTrain();
@@ -931,7 +932,7 @@ function restInn() {
 function restCountryside() {
   closeRestModal();
   G.day++;
-  const heal = Math.min(Math.floor(G.maxHp / 2), G.maxHp - G.hp);
+  const heal = Math.min(Math.floor(G.maxHp / 2) + G.resilience, G.maxHp - G.hp);
   G.hp += heal;
   if (Math.random() < 0.40) {
     const pool = [...G.kingdom.monsters, 'bandit'];
@@ -1314,9 +1315,7 @@ function syncCombatButtons() {
   container.innerHTML = '';
 
   for (let d = 1; d <= maxDice; d++) {
-    const isLight  = d === 1;
-    const cost     = d * ST_HEAVY_PER;
-    const canUse   = (stamDice >= d) && (isLight || CB.stamina >= cost);
+    const canUse   = stamDice >= d;
     const color    = ATK_COLORS[Math.min(d - 1, ATK_COLORS.length - 1)];
 
     const btn = document.createElement('button');
@@ -1572,7 +1571,7 @@ function _defendBreakdown(ed, absorbed, taken) {
     <div class="bdwrap">
       <div class="bds" style="justify-content:center">
         <div class="bdhd">🛡️ Defend</div>
-        ${_bdr('Stamina restored', _pill(`+${ST_DEFEND}⚡`, 'gold'))}
+        ${_bdr('Stamina regen', _pill(`+${G.resilience}⚡`, 'gold'))}
         ${ed.block > 0 ? _bdr('Your Defense', _pill(`−${ed.block}`, 'green')) : ''}
         ${absorbed > 0 ? _bdr('Defend bonus', _pill(`−${absorbed}`, 'green')) : ''}
       </div>
@@ -1694,7 +1693,7 @@ function showDefendResult(eDice, ed, defDice, taken) {
     </div>
     <div class="cb-box" id="cb-pd-def">
       <div class="cb-hd">🛡️ Your Defense</div>
-      <div class="cb-pool">${_make3DDie('dr-pd-0')}</div>
+      <div class="cb-pool">${defDice.map((_,i)=>_make3DDie(`dr-pd-${i}`)).join('')}</div>
       ${G.armor.def > 0 ? `<div class="cb-lbl">🛡️ Armor +${Math.floor(G.armor.def/6)} block</div>` : ''}
     </div>
     <div class="cb-box" id="cb-ed">
@@ -1706,15 +1705,21 @@ function showDefendResult(eDice, ed, defDice, taken) {
   </div>`;
 
   const bz = eid('breakdown-zone'); if(bz) bz.style.display = 'none';
-  const defEl = eid('dr-pd-0'); if(defEl) _startDieSpin(defEl);
-  eDice.forEach((_,i) => { const d=eid(`dr-ea-${i}`); if(d) _startDieSpin(d); });
+  defDice.forEach((_,i) => { const d=eid(`dr-pd-${i}`); if(d) _startDieSpin(d); });
+  eDice.forEach((_,i)   => { const d=eid(`dr-ea-${i}`); if(d) _startDieSpin(d); });
 
   setTimeout(() => {
-    if(defEl) _landDie3D(defEl, defDice[0], 0);
-    eDice.forEach((v,i) => { const d=eid(`dr-ea-${i}`); if(d) _landDie3D(d,v,(i+1)*60); });
+    defDice.forEach((v,i) => { const d=eid(`dr-pd-${i}`); if(d) _landDie3D(d,v,i*60); });
+    eDice.forEach((v,i)   => { const d=eid(`dr-ea-${i}`); if(d) _landDie3D(d,v,(defDice.length+i)*60); });
     setTimeout(() => {
+      const diceBlock = defDice.reduce((a,b)=>a+b,0);
       const ps = eid('cb-def-ps'), es = eid('cb-def-es');
-      if (ps) { ps.textContent = '— no attack —'; ps.style.opacity=''; }
+      if (ps) {
+        ps.textContent = defDice.length > 1
+          ? `${defDice.join('+')}=${diceBlock} defended`
+          : `${diceBlock} defended`;
+        ps.style.opacity='';
+      }
       if (es) {
         es.textContent = ed.block > 0
           ? `${ed.raw} − ${ed.block} = ${taken} taken`
@@ -1742,23 +1747,18 @@ function staminaCost(cost) {
 //  COMBAT — ACTIONS
 // ═══════════════════════════════════════════════════
 
-// diceCount = number of dice to roll (1 = light/restorative, N = heavy/costly)
+// diceCount = number of dice to roll; all attacks cost 6 stamina per die
 function cAttack(diceCount) {
   if (CB.over) return;
   lockCombat();
 
-  const isLight = diceCount === 1;
-  const cost    = diceCount * ST_HEAVY_PER;
+  const cost = diceCount * ST_HEAVY_PER;
 
   // Capture available dice BEFORE stamina changes, so unused dice calculation is correct
   const availDicePreCost = Math.min(nDice(pCombat()), Math.floor(CB.stamina / 6));
 
-  if (isLight) {
-    CB.stamina = Math.min(G.maxStam, CB.stamina + ST_LIGHT_RESTORE);
-  } else {
-    if (CB.stamina < cost) { unlockCombat(); return; }
-    staminaCost(cost);
-  }
+  if (CB.stamina < cost) { unlockCombat(); return; }
+  staminaCost(cost);
 
   // Enemy decides how many dice to commit to defense (based on current HP, before damage)
   const totalEDice              = nDice(CB.m.atk);
@@ -1789,10 +1789,11 @@ function cAttack(diceCount) {
   showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defeated);
 
   setTimeout(() => {
+    CB.stamina = Math.min(G.maxStam, CB.stamina + G.resilience);
     syncCombatBars();
     flash('bar-ehp', false);
     if (eTaken > 0) flash('bar-php', false);
-    flash('bar-st', isLight);
+    flash('bar-st', false);
   }, ROLL_MS + SETTLE_MS);
 
   if (CB.mHp <= 0) { setTimeout(combatWin, 1475); return; }
@@ -1804,11 +1805,10 @@ function cDefend() {
   if (CB.over) return;
   lockCombat();
 
-  CB.stamina = Math.min(G.maxStam, CB.stamina + ST_DEFEND);
-
-  // Roll 1d6 for defense block, then enemy attacks
-  const defDice   = rollArr(1);
-  const diceBlock = defDice[0];
+  // Use all available dice for defense (minimum 1 at 0 stamina)
+  const availDice = Math.max(1, Math.min(nDice(pCombat()), Math.floor(CB.stamina / 6)));
+  const defDice   = rollArr(availDice);
+  const diceBlock = defDice.reduce((a, b) => a + b, 0);
   const eDice     = rollArr(nDice(CB.m.atk));
   const ed        = enemyDetail(eDice, diceBlock);
   const taken     = ed.dmg;
@@ -1817,6 +1817,7 @@ function cDefend() {
   showDefendResult(eDice, ed, defDice, taken);
 
   setTimeout(() => {
+    CB.stamina = Math.min(G.maxStam, CB.stamina + G.resilience);
     syncCombatBars();
     flash('bar-st', true);
     if (taken > 0) flash('bar-php', false);
@@ -1829,7 +1830,7 @@ function cDefend() {
 function cPotion() {
   if (CB.over || G.potions <= 0) return;
   G.potions--;
-  const heal = Math.min(POTION_HEAL, G.maxHp - G.hp);
+  const heal = Math.min(POTION_HEAL + G.resilience, G.maxHp - G.hp);
   G.hp += heal;
   clog(`🧪 You drink a potion and recover ${heal} HP.`);
 
@@ -1974,28 +1975,56 @@ function trainCost(stat) {
 }
 
 function canAffordAnyTrain() {
-  return ['combat','hp','stam'].some(s => G.xp >= trainCost(s));
+  return ['combat','hp','stam','resilience'].some(s => G.xp >= trainCost(s));
 }
 
 function gotoTrain() { syncTrain(); show('s-train'); }
 
 function syncTrain() {
   eid('tr-xp').textContent = `⭐ ${G.xp} XP`;
-  const cbt     = pCombat();
+  const cbt      = pCombat();
+  const cbtDice  = nDice(cbt);
   const stamDice = Math.floor(G.maxStam / 6);
   const stats = [
-    { key:'combat', icon:'⚔️', label:'Combat',  cur: `${cbt} · up to ${nDice(cbt)}d6`,           next: `→ ${cbt+6} · up to ${nDice(cbt+6)}d6`           },
-    { key:'hp',     icon:'❤️', label:'Health',  cur: `${G.maxHp} max HP`,                          next: `→ ${G.maxHp+6} max HP`                           },
-    { key:'stam',   icon:'⚡', label:'Stamina', cur: `${G.maxStam} max · ${stamDice} dice`,        next: `→ ${G.maxStam+6} max · ${stamDice+1} dice`       },
+    {
+      key:'combat', icon:'⚔️', label:'Combat',
+      benefits: [
+        `${cbt} power · up to ${cbtDice} ${cbtDice===1?'die':'dice'}`,
+        `+6 power, +1 die per upgrade`,
+      ],
+    },
+    {
+      key:'hp', icon:'❤️', label:'Health',
+      benefits: [
+        `${G.maxHp} max HP`,
+        `+6 HP per upgrade`,
+      ],
+    },
+    {
+      key:'stam', icon:'⚡', label:'Stamina',
+      benefits: [
+        `${G.maxStam} max · ${stamDice} ${stamDice===1?'die':'dice'}`,
+        `+6 stamina, +1 die per upgrade`,
+      ],
+    },
+    {
+      key:'resilience', icon:'💚', label:'Resilience',
+      benefits: [
+        `+${G.resilience} stamina per turn`,
+        `+${G.resilience} healing (potions & rest)`,
+      ],
+    },
   ];
   eid('tr-content').innerHTML = stats.map(s => {
-    const cost   = trainCost(s.key);
-    const afford = G.xp >= cost;
+    const cost      = trainCost(s.key);
+    const afford    = G.xp >= cost;
+    const upgrades  = G.trainCount[s.key];
     return `<div class="irow">
       <div class="iico">${s.icon}</div>
       <div class="iinf">
-        <div class="inm">${s.label} <span style="font-weight:400;color:var(--text)">${s.cur}</span></div>
-        <div class="istat">${s.next} &nbsp;·&nbsp; ${G.trainCount[s.key]} upgrade${G.trainCount[s.key]!==1?'s':''}</div>
+        <div class="inm">${s.label}</div>
+        ${s.benefits.map(b => `<div class="istat">${b}</div>`).join('')}
+        <div class="istat" style="color:var(--muted);margin-top:2px">${upgrades} upgrade${upgrades!==1?'s':''}</div>
       </div>
       <span class="icost" style="color:var(--mp);white-space:nowrap">${cost} XP</span>
       <button class="btn btn-purple ibtn" ${afford?'':'disabled'} onclick="doTrain('${s.key}')">Train</button>
@@ -2008,11 +2037,12 @@ function doTrain(stat) {
   if (G.xp < cost) return;
   G.xp -= cost;
   G.trainCount[stat]++;
-  const labels = { combat:'Combat', hp:'Health', stam:'Stamina' };
+  const labels = { combat:'Combat', hp:'Health', stam:'Stamina', resilience:'Resilience' };
   switch(stat) {
-    case 'combat': G.baseCombat += 6; break;
-    case 'hp':     G.maxHp      += 6; G.hp = Math.min(G.maxHp, G.hp + 6); break;
-    case 'stam':   G.maxStam    += 6; break;
+    case 'combat':     G.baseCombat  += 6; break;
+    case 'hp':         G.maxHp       += 6; G.hp = Math.min(G.maxHp, G.hp + 6); break;
+    case 'stam':       G.maxStam     += 6; break;
+    case 'resilience': G.resilience  += 6; break;
   }
   addLog(`📚 Trained ${labels[stat]} +6. (${cost} XP)`, 'lok');
   syncTrain();
