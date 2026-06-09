@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Dragonslayer</title>
+<style>
+@font-face {
+  font-family: 'UnifrakturMaguntia';
+  src: url('fonts/UnifrakturMaguntia/UnifrakturMaguntia-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── TOKENS ── */
+:root {
+  --bg:      #131220;
+  --surface: #1e1c30;
+  --card:    #27253c;
+  --border:  #38354f;
+  --accent:  #e8503a;
+  --accent2: #b83a26;
+  --gold:    #f0c040;
+  --hp:      #48b87a;
+  --mp:      #8a6fc7;
+  --text:    #eae8f4;
+  --muted:   #9694ae;
+  --radius:  14px;
+  --rs:      9px;
+}
+
+/* ── BASE ── */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+#app {
+  width: 100%;
+  max-width: 480px;
+  height: 100dvh;        /* definite height so flex children can fill remaining space */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; flex-direction: column; flex: 1; padding: 14px; gap: 10px; padding-bottom: 22px; overflow-y: auto; min-height: 0; }
+.screen.active { display: flex; }
+
+/* ── CARDS ── */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.clabel { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px; color: var(--muted); margin-bottom: 8px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 12px 16px; border: none; border-radius: var(--rs);
+  font-size: 13.5px; font-weight: 600; cursor: pointer; width: 100%;
+  transition: filter .12s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active:not(:disabled) { transform: scale(0.96); filter: brightness(.87); }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn-red    { background: var(--accent);  color: #fff; }
+.btn-crimson{ background: #9a2020;        color: #fff; }
+.btn-gray   { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-gold   { background: var(--gold);    color: #1a1820; }
+.btn-green  { background: var(--hp);      color: #fff; }
+.btn-blue   { background: #3a7bd5;        color: #fff; }
+.btn-purple { background: var(--mp);      color: #fff; }
+.btn-dragon { background: linear-gradient(135deg,#c43e2a,#7a1c0e); color: #fff; }
+.row { display: flex; gap: 7px; }
+.row .btn { flex: 1; }
+
+/* ── PROGRESS BARS ── */
+.bwrap { height: 7px; background: var(--surface); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+.bfill { height: 100%; border-radius: 4px; transition: width .35s, background .5s; }
+.bfill.hp  { background: var(--hp); }
+.bfill.xp  { background: var(--mp); }
+.bfill.ehp { background: var(--accent); }
+.bfill.st-hi  { background: linear-gradient(90deg,#d4820a,#f0c040); }
+.bfill.st-mid { background: #c8a020; }
+.bfill.st-lo  { background: #e04040; }
+
+/* ── STATUS PILLS ── */
+.pills { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.pill { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs); padding: 9px 12px; display: flex; align-items: center; gap: 8px; }
+.pill .ico { font-size: 17px; line-height: 1; }
+.pill .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+.pill .val { font-size: 15px; font-weight: 700; margin-top: 1px; }
+.vgold { color: var(--gold); }
+.vhp   { color: var(--hp); }
+.vday  { color: var(--accent); }
+
+/* ── DIE BADGE (attack buttons) ── */
+.die-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 19px; height: 19px; border-radius: 5px;
+  border: 2px solid rgba(255,255,255,.65);
+  font-size: 11px; font-weight: 800; flex-shrink: 0;
+}
+
+/* ── COMBAT STAT ROW ── */
+.stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+.stat-row span:first-child { font-weight: 600; }
+
+/* ── LOG ── */
+/* ── COMBAT BREAKDOWN ── */
+.bdwrap { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+.bds    { display: flex; flex-direction: column; gap: 7px; }
+.bdhd   { font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 1px; color: var(--muted); margin-bottom: 2px; }
+.bdr    { display: flex; justify-content: space-between; align-items: center;
+          font-size: 12.5px; gap: 6px; }
+.bdr .bl { color: var(--muted); flex-shrink: 0; }
+.bdsep  { border-top: 1px solid var(--border); margin: 2px 0; }
+
+/* Color-coded pills */
+.pill   { display: inline-block; padding: 4px 11px; border-radius: 7px;
+          font-size: 13px; font-weight: 700; }
+.pill-gold  { background: rgba(240,192,64,.18); color: var(--gold); }
+.pill-red   { background: rgba(232,80,58,.18);  color: var(--accent); }
+.pill-green { background: rgba(72,184,122,.18); color: var(--hp); }
+.pill-muted { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+
+/* ── LOGS ── */
+.logscroll { overflow-y: auto; flex: 1; min-height: 0; }
+.logi { display: block; width: 100%; font-size: 12px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); line-height: 1.4; }
+.logi:last-child { border-bottom: none; }
+.lhi  { color: var(--text); }
+.lok  { color: var(--hp); }
+.lbad { color: var(--accent); }
+.lgld { color: var(--gold); }
+
+/* ── TITLE SCREEN ── */
+#s-title {
+  align-items: center;
+  padding-top: max(32px, 8vh);
+  background: radial-gradient(ellipse at 50% 30%, #2a1535 0%, var(--bg) 70%);
+}
+#s-title-inner {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 22px; text-align: center; width: 100%;
+}
+.tsub    { color: var(--muted); font-size: 14px; max-width: 268px; line-height: 1.6; }
+
+/* ── KINGDOM ── */
+.knm  { font-size: 20px; font-weight: 800; margin-bottom: 3px; }
+.kdsc { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.kinf { font-size: 11.5px; color: var(--muted); }
+.kinf strong { color: var(--text); }
+
+/* ── COMBAT ── */
+.combatant { display: flex; align-items: center; gap: 12px; }
+.cico  { width: 64px; height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.cico img { width: 64px; height: 64px; image-rendering: pixelated; image-rendering: crisp-edges; }
+.cinf  { flex: 1; }
+.cnm   { font-size: 16px; font-weight: 700; }
+.cstat { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.chpr  { display: flex; align-items: center; gap: 7px; margin-top: 6px; }
+.chpn  { font-size: 11px; color: var(--muted); min-width: 54px; text-align: right; }
+
+/* Stamina bar */
+.stam-row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+
+/* Dice zone */
+#dice-zone {
+  padding: 0; background: transparent; border: none; overflow: visible;
+}
+/* ── Combat 6-box grid ── */
+.cb-idle { text-align: center; padding: 18px; font-size: 12.5px; color: var(--muted); }
+.cb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 100%; align-items: stretch; }
+.cb-box  {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--rs);
+  padding: 8px 8px 7px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: background .25s, border .25s, opacity .25s;
+  overflow: visible;
+}
+.cb-box.win  { background: rgba(72,184,122,.12); border-color: rgba(72,184,122,.35); }
+.cb-box.lose { opacity: .4; }
+.cb-hd { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+         letter-spacing: .05em; align-self: flex-start; }
+.cb-pool { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+           min-height: 32px; align-items: center; perspective: 250px;
+           padding: 10px 6px; }
+.cb-lbl { font-size: 9.5px; color: var(--muted); text-align: center; }
+.cb-sum {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs);
+  padding: 4px 6px; font-size: 10px; font-weight: 700; color: var(--muted);
+  text-align: center; min-height: 24px; display: flex; align-items: center; justify-content: center;
+  transition: color .25s;
+}
+.cb-sum.p-win { color: var(--hp); }
+.cb-sum.e-win { color: var(--accent); }
+/* ── 3D Die (32 × 32) ── */
+.die-3d {
+  width: 32px; height: 32px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(0deg) rotateY(0deg);
+}
+.face {
+  position: absolute; width: 32px; height: 32px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.2);
+}
+.face.f-front  { transform: translateZ(16px); }
+.face.f-back   { transform: rotateY(180deg) translateZ(16px); }
+.face.f-right  { transform: rotateY(90deg)  translateZ(16px); }
+.face.f-left   { transform: rotateY(-90deg) translateZ(16px); }
+.face.f-top    { transform: rotateX(-90deg) translateZ(16px); }
+.face.f-bottom { transform: rotateX(90deg)  translateZ(16px); }
+.pip {
+  position: absolute; width: 6px; height: 6px;
+  background: #111; border-radius: 50%;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.3);
+}
+.didle { font-size: 12.5px; color: var(--muted); }
+
+/* breakdown zone placeholder */
+.bd-placeholder { margin: auto; font-size: 12.5px; color: var(--muted); }
+
+/* ── MARKET ── */
+.tabs { display: flex; gap: 5px; }
+.tab {
+  flex: 1; padding: 7px 4px; font-size: 11.5px; font-weight: 600; text-align: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+  cursor: pointer; color: var(--muted); transition: all .13s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab.on { background: var(--mp); border-color: var(--mp); color: #fff; }
+
+.irow { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.irow:last-child { border-bottom: none; }
+.iico  { font-size: 24px; width: 32px; text-align: center; }
+.iinf  { flex: 1; }
+.inm   { font-size: 13px; font-weight: 600; }
+.istat { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.icost { font-size: 13px; font-weight: 700; }
+.ibtn  { padding: 6px 12px; font-size: 12px; width: auto; min-width: 56px; }
+.badge { font-size: 10px; color: var(--hp); font-weight: 600; margin-left: 5px; }
+.sale  { font-size: 10px; color: var(--gold); font-weight: 600; margin-left: 4px; }
+.orig  { font-size: 10px; color: var(--muted); text-decoration: line-through; margin-right: 3px; }
+
+.kspec { padding: 9px 13px; border-radius: var(--rs); font-size: 12px; color: var(--gold); background: rgba(240,192,64,.1); border: 1px solid rgba(240,192,64,.25); }
+
+/* ── TRAVEL ── */
+.kopt {
+  display: flex; align-items: center; gap: 12px; padding: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs);
+  cursor: pointer; width: 100%; text-align: left;
+  transition: border-color .13s, background .13s;
+  -webkit-tap-highlight-color: transparent;
+}
+.kopt:hover:not(:disabled) { border-color: var(--mp); background: var(--card); }
+.kopt:disabled { opacity: .5; cursor: default; }
+.kopt.here { border-color: var(--hp); opacity: .6; cursor: default; }
+.kico { font-size: 28px; }
+.kinf2 { flex: 1; }
+.knm2  { font-size: 14px; font-weight: 700; }
+.kdsc2 { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.kwarn { font-size: 11px; color: var(--accent); margin-top: 3px; }
+.tcost { text-align: right; }
+.tdays { font-size: 16px; font-weight: 800; color: var(--accent); }
+.tlbl  { font-size: 10px; color: var(--muted); }
+
+.alert { padding: 10px 13px; border-radius: var(--rs); font-size: 12px; line-height: 1.5; color: var(--muted); }
+.alert-red { background: rgba(232,80,58,.1); border: 1px solid rgba(232,80,58,.28); }
+
+/* ── MODALS ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.74); z-index: 200; align-items: center; justify-content: center; padding: 18px; }
+.overlay.on { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 380px; }
+.modal h2 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+.modal p  { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+.perk { padding: 12px; border: 2px solid var(--border); border-radius: var(--rs); margin-bottom: 8px; cursor: pointer; transition: border-color .13s, background .13s; -webkit-tap-highlight-color: transparent; }
+.perk:hover { border-color: var(--mp); background: var(--surface); }
+.pnm  { font-size: 13.5px; font-weight: 700; }
+.pdsc { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+/* ── END SCREENS ── */
+#s-lose, #s-win { align-items: center; justify-content: center; text-align: center; gap: 18px; }
+.endico   { font-size: 82px; filter: drop-shadow(0 0 16px rgba(255,255,255,.12)); }
+.endtitle { font-size: 30px; font-weight: 800; }
+.enddesc  { font-size: 13.5px; color: var(--muted); max-width: 276px; line-height: 1.6; }
+.endbtns  { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 276px; }
+
+/* ── BACK ROW ── */
+.backrow { display: flex; align-items: center; gap: 10px; }
+.backrow h2 { font-size: 18px; font-weight: 700; }
+.backrow .sp { flex: 1; }
+.backbtn { padding: 8px 14px; font-size: 12.5px; width: auto; }
+
+/* ── TRAIN BUTTON PULSE ── */
+@keyframes pulse-ready {
+  0%,100% { box-shadow: 0 0 0 0 rgba(240,192,64,.55); }
+  55%     { box-shadow: 0 0 0 7px rgba(240,192,64,0); }
+}
+.btn-ready { animation: pulse-ready 1.6s ease-in-out infinite; }
+
+/* ── ANIMATION ── */
+@keyframes rollin {
+  0%   { transform: rotate(-160deg) scale(.35); opacity: 0; }
+  100% { transform: rotate(0) scale(1); opacity: 1; }
+}
+.roll { animation: rollin .32s cubic-bezier(.34,1.56,.64,1) both; }
+
+/* Dice — 3D handled by JS rAF + CSS transition */
+
+/* Attribute flash */
+@keyframes fpok  { 0%,100%{background:transparent} 35%{background:rgba(72,184,122,.30)} }
+@keyframes fpbad { 0%,100%{background:transparent} 35%{background:rgba(232,80,58,.30)} }
+@keyframes fpgld { 0%,100%{background:transparent} 35%{background:rgba(240,192,64,.25)} }
+.flash-ok  { animation: fpok  .6s ease; border-radius: 6px; }
+.flash-bad { animation: fpbad .6s ease; border-radius: 6px; }
+.flash-gld { animation: fpgld .6s ease; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════════ TITLE ══════════════ -->
+<div id="s-title" class="screen active">
+  <div id="s-title-inner">
+    <img src="logo.png" alt="Dragonslayer" style="width:100%;max-width:320px;height:auto">
+    <div class="tsub">Your daughter Lyra has been chosen in the village lottery to be sacrificed to the dragon Pyraxis. You have 30 days to grow strong enough to defeat him and save your daughter.</div>
+    <button class="btn btn-red" style="max-width:260px;padding:16px;font-size:17px" onclick="newGame()">⚔️ Begin Quest</button>
+    <button class="btn btn-gray" style="max-width:260px" onclick="show('s-tutorial')">📖 How to Fight</button>
+  </div>
+</div>
+
+<!-- ══════════════ TUTORIAL ══════════════ -->
+<div id="s-tutorial" class="screen">
+  <div class="backrow">
+    <button class="btn btn-gray backbtn" onclick="show('s-title')">← Back</button>
+    <h2>📖 How to Fight</h2>
+    <div class="sp"></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">The Basics</div>
+    <p style="font-size:13px;line-height:1.6;color:var(--text)">
+      Combat is driven by <strong>d6 dice</strong>. Every 6 points of Combat stat gives you one die.
+      You choose how many dice to roll on your attack — unused dice automatically roll to <strong>block enemy damage</strong>.
+      Splitting your dice between attack and defense is the core decision every turn.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Stamina &amp; Dice</div>
+    <p style="font-size:13px;line-height:1.6;color:var(--text)">
+      Your <strong>stamina</strong> limits how many dice you can use. Available dice =
+      <em>min(Combat dice, floor(Stamina ÷ 6))</em>. At full stamina you can use all your dice.
+      Drain it on heavy attacks and both your offense and defense suffer.
+    </p>
+    <div class="alert" style="font-size:12px;margin-top:8px">
+      🎲×1 ⚔️ is a <strong>light attack</strong> — it <em>restores</em> stamina (+6) and costs nothing.<br>
+      🎲×2+ ⚔️ are <strong>heavy attacks</strong> — each die costs 6 stamina.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Blocking</div>
+    <p style="font-size:13px;line-height:1.6;color:var(--text)">
+      After your attack, the enemy hits back. Any dice you didn't use for attacking are rolled —
+      their <strong>sum reduces incoming damage</strong>. Your armor adds a flat block on top.
+      Example: you have 3 dice, attack with 2 → the 3rd die rolls (say a 4) → enemy damage reduced by 4, then by your armor.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Defend &amp; Potion</div>
+    <p style="font-size:13px;line-height:1.6;color:var(--text)">
+      <strong>🛡️ Defend</strong> — skip your attack, restore 12 stamina, and absorb up to 12 damage from the enemy's hit.
+      Use this when stamina is low to recover your dice pool.<br><br>
+      <strong>🧪 Potion</strong> — drink a health potion mid-combat. The enemy gets a free attack while you drink.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Damage Formula</div>
+    <p style="font-size:13px;line-height:1.6;color:var(--text)">
+      <strong>Your damage:</strong> dice sum − enemy DEF block. Minimum 1.<br>
+      <strong>Enemy damage:</strong> dice sum − your block dice roll − your armor block. Minimum 0.<br><br>
+      Enemies also have DEF — high-DEF enemies eat into your dice rolls. Upgrade your Combat stat or buy better weapons to roll more dice and overpower their defence.
+    </p>
+  </div>
+
+  <button class="btn btn-red" style="margin-top:4px" onclick="show('s-title')">← Back to Title</button>
+</div>
+
+<!-- ══════════════ KINGDOM ══════════════ -->
+<div id="s-kingdom" class="screen">
+
+  <div class="pills">
+    <div class="pill"><span class="ico">📅</span><div><div class="lbl">Day</div><div class="val vday" id="p-day">1</div></div></div>
+    <div class="pill"><span class="ico">💰</span><div><div class="lbl">Gold</div><div class="val vgold" id="p-gold">100</div></div></div>
+    <div class="pill pill-journal" onclick="openJournal()" style="cursor:pointer"><span class="ico">📖</span><div><div class="lbl">Journal</div></div></div>
+    <div class="pill" style="grid-column:span 3">
+      <span class="ico">❤️</span>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between">
+          <span class="lbl">Health</span><span class="lbl" id="p-hp">40/40</span>
+        </div>
+        <div class="bwrap"><div class="bfill hp" id="bar-hp" style="width:100%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Hero</div>
+    <div style="display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap">
+      <span>⚔️ Combat <strong id="p-cbt" style="color:var(--text)">6</strong></span>
+      <span>🛡️ Armor <strong id="p-arm" style="color:var(--text)">0</strong></span>
+      <span>⚡ <span id="p-stam" style="color:var(--text)">24 max</span></span>
+      <span>🗡️ <span id="p-wpn" style="color:var(--text)">Rusty Dagger</span></span>
+      <span>🧪 <span id="p-pot" style="color:var(--text)">2 potions</span></span>
+    </div>
+    <div style="margin-top:8px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">
+        <span>XP</span><span id="p-xp">0</span>
+      </div>
+      <div class="bwrap"><div class="bfill xp" id="bar-xp" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Current Kingdom</div>
+    <div class="knm" id="k-name">Ashenvale</div>
+    <div class="kdsc" id="k-desc">—</div>
+    <div class="kinf">Monsters: <strong id="k-mon">—</strong></div>
+  </div>
+
+  <button class="btn btn-dragon" id="btn-dragon" onclick="challengeDragon()" style="display:none">
+    🐉 Challenge Pyraxis the Dragon
+  </button>
+
+  <div class="row">
+    <button class="btn btn-red"    onclick="explore()">⚔️ Explore</button>
+    <button class="btn btn-blue"   onclick="gotoMarket()">🛒 Market</button>
+  </div>
+  <div class="row">
+    <button class="btn btn-green"  id="btn-rest" onclick="rest()">😴 Rest (18g)</button>
+    <button class="btn btn-purple" onclick="gotoTravel()">🗺️ Travel</button>
+  </div>
+  <div class="row">
+    <button class="btn btn-gray" id="btn-train" onclick="gotoTrain()">📚 Train</button>
+  </div>
+
+
+</div>
+
+<!-- ══════════════ COMBAT ══════════════ -->
+<div id="s-combat" class="screen">
+
+  <h2 style="text-align:center;font-size:18px;margin-bottom:-2px">⚔️ Battle!</h2>
+
+  <!-- enemy -->
+  <div class="card" style="padding:12px">
+    <div class="clabel" style="margin-bottom:6px">Enemy</div>
+    <div class="combatant">
+      <div class="cinf">
+        <div class="cnm"  id="c-enm">Goblin</div>
+        <div class="cstat" id="c-est">ATK 4 · DEF 1 · 2 dice</div>
+        <div class="chpr">
+          <div class="bwrap" style="flex:1"><div class="bfill ehp" id="bar-ehp" style="width:100%"></div></div>
+          <div class="chpn" id="c-ehp">20/20</div>
+        </div>
+      </div>
+      <div class="cico" id="c-eico"></div>
+    </div>
+  </div>
+
+  <!-- dice zone -->
+  <div id="dice-zone">
+    <div class="didle">Choose your action…</div>
+  </div>
+
+  <!-- breakdown — flex:1 fills remaining space -->
+  <div class="card" id="breakdown-zone" style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px;min-height:0">
+    <div class="bd-placeholder">Choose your action…</div>
+  </div>
+
+  <!-- player health + stamina (combined) -->
+  <div class="card" style="padding:10px 13px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+      <span class="stat-row" style="margin:0;gap:5px"><span style="font-size:14px">❤️</span> <span>Health</span></span>
+      <span style="font-size:11px;color:var(--muted);display:flex;gap:10px">
+        <span id="c-php">40/40</span>
+        <span id="c-pots">🧪 2</span>
+      </span>
+    </div>
+    <div class="bwrap"><div class="bfill hp" id="bar-php" style="width:100%"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:2px">
+      <span class="stat-row" style="margin:0;gap:5px"><span style="font-size:14px">⚡</span> <span>Stamina</span></span>
+      <span style="font-size:11px;color:var(--muted)" id="c-st-txt">24 / 24</span>
+    </div>
+    <div class="bwrap" style="margin-top:0"><div class="bfill st-hi" id="bar-st" style="width:100%"></div></div>
+  </div>
+
+  <!-- combat actions -->
+  <div style="display:flex;flex-direction:column;gap:7px" id="c-actions">
+    <!-- attack buttons built dynamically by syncCombatButtons() -->
+    <div id="attack-buttons" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+    <div class="row">
+      <button class="btn btn-gray"  id="btn-def"  onclick="cDefend()">🛡️ Defend</button>
+      <button class="btn btn-green" id="btn-pot"  onclick="cPotion()">🧪 Potion</button>
+      <button class="btn btn-gray"  id="btn-flee" onclick="cFlee()">💨 Flee</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════ MARKET ══════════════ -->
+<div id="s-market" class="screen">
+
+  <div class="backrow">
+    <button class="btn btn-gray backbtn" onclick="gotoKingdom()">← Back</button>
+    <h2>🛒 Market</h2>
+    <div class="sp"></div>
+    <span style="color:var(--gold);font-weight:700;font-size:13.5px" id="m-gold">💰 100</span>
+  </div>
+
+  <div id="m-kspec" style="display:none" class="kspec"></div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="mTab('w')">⚔️ Weapons</div>
+    <div class="tab"    onclick="mTab('a')">🛡️ Armor</div>
+    <div class="tab"    onclick="mTab('p')">🧪 Potions</div>
+  </div>
+
+  <div class="card" style="flex:1;overflow-y:auto">
+    <div id="m-items"></div>
+  </div>
+
+  <div class="card" style="padding:11px 14px">
+    <div class="clabel">Equipped</div>
+    <div style="font-size:12px;display:flex;gap:13px;flex-wrap:wrap;color:var(--muted)">
+      <span>⚔️ <span id="m-ewpn" style="color:var(--text)">Rusty Dagger</span></span>
+      <span>🛡️ <span id="m-earm" style="color:var(--text)">Peasant Clothes</span></span>
+      <span>🧪 <span id="m-epot" style="color:var(--text)">2 potions</span></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════ TRAVEL ══════════════ -->
+<div id="s-travel" class="screen">
+
+  <div class="backrow">
+    <button class="btn btn-gray backbtn" onclick="gotoKingdom()">← Back</button>
+    <h2>🗺️ Travel</h2>
+    <div class="sp"></div>
+    <span style="font-size:12px;color:var(--accent)" id="t-left">30 days left</span>
+  </div>
+
+  <div class="alert alert-red">
+    ⏰ The sacrifice is on <strong style="color:var(--accent)">Day 30</strong>. Return to Ashenvale and slay Pyraxis before time runs out.
+  </div>
+
+  <div id="t-list" style="display:flex;flex-direction:column;gap:8px;flex:1"></div>
+
+</div>
+
+<!-- ══════════════ GAME OVER ══════════════ -->
+<div id="s-lose" class="screen">
+  <div class="endico">💀</div>
+  <div class="endtitle">Quest Failed</div>
+  <div class="enddesc" id="lose-desc">Your quest ended in darkness.</div>
+  <div class="endbtns">
+    <button class="btn btn-red"  onclick="newGame()">⚔️ Try Again</button>
+    <button class="btn btn-gray" onclick="showTitle()">🏠 Title Screen</button>
+  </div>
+</div>
+
+<!-- ══════════════ VICTORY ══════════════ -->
+<div id="s-win" class="screen">
+  <div class="endico">🏆</div>
+  <div class="endtitle">Victory!</div>
+  <div class="enddesc" id="win-desc">You saved Lyra!</div>
+  <div class="endbtns">
+    <button class="btn btn-gold" onclick="newGame()">⚔️ Play Again</button>
+    <button class="btn btn-gray" onclick="showTitle()">🏠 Title Screen</button>
+  </div>
+</div>
+
+<!-- ══════════════ TRAIN ══════════════ -->
+<div id="s-train" class="screen">
+
+  <div class="backrow">
+    <button class="btn btn-gray backbtn" onclick="gotoKingdom()">← Back</button>
+    <h2>📚 Train</h2>
+    <div class="sp"></div>
+    <span style="color:var(--mp);font-weight:700;font-size:13.5px" id="tr-xp">⭐ 0 XP</span>
+  </div>
+
+  <div class="alert alert-red" style="font-size:11.5px">
+    Each upgrade costs double the last for that stat. Costs are independent per stat.
+  </div>
+
+  <div class="card" id="tr-content" style="flex:1;overflow-y:auto"></div>
+
+</div>
+
+<!-- ══════════════ JOURNAL MODAL ══════════════ -->
+<div class="overlay" id="journal-modal" onclick="if(event.target===this)closeJournal()">
+  <div class="modal" style="max-height:80vh;display:flex;flex-direction:column;padding:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <h2 style="margin:0">📖 Journal</h2>
+      <button class="btn btn-gray" style="padding:4px 12px;font-size:13px;flex-shrink:0;width:auto" onclick="closeJournal()">✕</button>
+    </div>
+    <div class="logscroll" id="k-log" style="flex:1;min-height:0"></div>
+  </div>
+</div>
+
+<!-- ══════════════ EVENT MODAL ══════════════ -->
+<div class="overlay" id="evt-modal">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:42px;margin-bottom:7px" id="evt-ico">⭐</div>
+    <h2 id="evt-title">Event!</h2>
+    <p id="evt-desc">Something happened.</p>
+    <div id="evt-btns" style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-red" id="evt-btn1" onclick="closeEvt()">Continue</button>
+      <button class="btn btn-gray" id="evt-btn2" style="display:none"></button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════
+//  GAME DATA
+// ═══════════════════════════════════════════════════
+
+const KINGDOMS = [
+  { id:'ashenvale', name:'Ashenvale',    icon:'🏰', desc:'Your home kingdom. Pyraxis the Dragon lairs here.',             monsters:['rat','bat','goblin','wolf'],                    tier:1 },
+  { id:'thornwood', name:'Thornwood',    icon:'🌲', desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['giantrat','giantbat','wolf','orc','skeleton'],  tier:2 },
+  { id:'ironforge', name:'Ironforge',    icon:'⚒️', desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['orc','troll'],                                 tier:2 },
+  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['giantbat','skeleton','dknight','wyvern'],       tier:3 },
+  { id:'saltmere',  name:'Saltmere',     icon:'⚓', desc:'A port city plagued by pirates and sea monsters.',              monsters:['pirate','seatroll','orc'],                      tier:2 },
+  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['icewolf','fgiant','wyvern'],        tier:3 },
+];
+
+// Kingdom market specialties — multipliers per category
+const MARKET_MODS = {
+  ashenvale: { label: null },
+  thornwood:  { label: '🌿 Thornwood herbalists: Potions −20%',                         potions: 0.80 },
+  ironforge:  { label: '⚒️ Dwarven smiths: Weapons −28% · Armor −12%',                 weapons: 0.72, armor: 0.88 },
+  crimson:    { label: '🗝️ Crimson Keep armourers: Armor −22%',                         armor: 0.78 },
+  saltmere:   { label: '⚓ Saltmere trade port: Potions −32%',                          potions: 0.68 },
+  frostpeak:  { label: '🏔️ Frostpeak northern smiths: Weapons −22% · Armor −12%',       weapons: 0.78, armor: 0.88 },
+};
+
+const TRAVEL = {
+  'ashenvale-thornwood':1,'ashenvale-ironforge':1,'ashenvale-saltmere':1,
+  'ashenvale-crimson':2,'ashenvale-frostpeak':3,
+  'thornwood-ironforge':2,'thornwood-crimson':1,'thornwood-saltmere':2,'thornwood-frostpeak':2,
+  'ironforge-crimson':2,'ironforge-saltmere':2,'ironforge-frostpeak':1,
+  'crimson-saltmere':2,'crimson-frostpeak':2,
+  'saltmere-frostpeak':3,
+};
+function travelDays(a,b){ return TRAVEL[`${a}-${b}`]||TRAVEL[`${b}-${a}`]||2; }
+
+const MONSTERS = {
+  bandit:  { name:'Bandit',      icon:'🦹', img:'sprites/bandit.png',     hp:18,  atk:12, def:6,  xp:18, glo:18, ghi:36  },
+  rat:     { name:'Rat',         icon:'🐀', img:'sprites/rat.png',        hp:6,   atk:6,  def:0,  xp:6,  glo:0,  ghi:6   },
+  bat:     { name:'Bat',         icon:'🦇', img:'sprites/bat.png',        hp:6,   atk:6,  def:0,  xp:6,  glo:0,  ghi:6   },
+  giantrat:{ name:'Giant Rat',   icon:'🐀', img:'sprites/giant_rat.png',  hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:12  },
+  giantbat:{ name:'Giant Bat',   icon:'🦇', img:'sprites/giant_bat.png',  hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:12  },
+  goblin:  { name:'Goblin',      icon:'👺', img:'sprites/goblin.png',     hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:18  },
+  wolf:    { name:'Wolf',        icon:'🐺', img:'sprites/wolf.png',       hp:18,  atk:6,  def:0,  xp:18, glo:6,  ghi:12  },
+  orc:     { name:'Orc',         icon:'👹', img:'sprites/orc.png',        hp:24,  atk:12, def:6,  xp:30, glo:12, ghi:36  },
+  skeleton:{ name:'Skeleton',    icon:'💀', img:'sprites/skeleton.png',   hp:18,  atk:12, def:6,  xp:24, glo:12, ghi:30  },
+  pirate:  { name:'Pirate',      icon:'🏴‍☠️', img:'sprites/pirate.png',  hp:24,  atk:12, def:6,  xp:24, glo:24, ghi:48  },
+  troll:   { name:'Troll',       icon:'🧌', img:'sprites/troll.png',      hp:42,  atk:18, def:6,  xp:48, glo:30, ghi:60  },
+  seatroll:{ name:'Sea Troll',   icon:'🦑', img:'sprites/sea_troll.png',  hp:36,  atk:12, def:6,  xp:42, glo:24, ghi:54  },
+  dknight: { name:'Dark Knight', icon:'⚫', img:'sprites/dark_knight.png',hp:48,  atk:18, def:12, xp:66, glo:42, ghi:96  },
+  icewolf: { name:'Ice Wolf',    icon:'🐺', img:'sprites/ice_wolf.png',   hp:30,  atk:18, def:6,  xp:36, glo:18, ghi:42  },
+  fgiant:  { name:'Frost Giant', icon:'❄️', img:'sprites/frost_giant.png',hp:60,  atk:24, def:12, xp:78, glo:54, ghi:114 },
+  wyvern:  { name:'Wyvern',      icon:'🐲', img:'sprites/wyvern.png',     hp:66,  atk:24, def:12, xp:96, glo:66, ghi:138 },
+};
+const DRAGON = { name:"Pyraxis the Dragon", icon:'🐉', img:'sprites/dragon.png', hp:120, atk:30, def:12, xp:0, glo:0, ghi:0 };
+
+const WEAPONS = [
+  { id:'dagger',    name:'Rusty Dagger',    icon:'🗡️', atk:0,  cost:0   },
+  { id:'sword',     name:'Short Sword',     icon:'⚔️', atk:6,  cost:66  },
+  { id:'axe',       name:'Battle Axe',      icon:'🪓', atk:12, cost:144 },
+  { id:'hammer',    name:'War Hammer',      icon:'🔨', atk:18, cost:294 },
+  { id:'enchanted', name:'Enchanted Blade', icon:'✨', atk:24, cost:564 },
+];
+const ARMORS = [
+  { id:'clothes', name:'Peasant Clothes', icon:'👕', def:0,  cost:0   },
+  { id:'leather', name:'Leather Armor',   icon:'🥋', def:6,  cost:72  },
+  { id:'chain',   name:'Chainmail',       icon:'🔗', def:12, cost:174 },
+  { id:'plate',   name:'Plate Armor',     icon:'🦺', def:18, cost:342 },
+  { id:'dscale',  name:'Dragon Scale',    icon:'🐉', def:24, cost:684 },
+];
+const POTION_COST = 30;
+const POTION_HEAL = 42;
+
+// Stamina constants — all multiples of 6 (one die = 6)
+// Pattern: 0 dice (defend) = +12, 1 die (light) = +6, N dice (heavy) = −N×6
+const ST_LIGHT_RESTORE = 6;   // stamina gained by light attack
+const ST_HEAVY_PER     = 6;   // stamina cost per die for heavy attack
+const ST_DEFEND        = 12;  // stamina restored by defend
+const ST_BASE          = 24;  // starting max stamina
+const ST_UPGRADE       = 12;  // max stamina per vitality perk
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+
+let G  = {};   // global game state
+let CB = {};   // combat state
+let mTab_cur = 'w';
+
+function initState() {
+  G = {
+    day: 1, gold: 96,
+    hp: 36, maxHp: 36,
+    xp: 0,
+    baseCombat: 6,
+    maxStam: ST_BASE,
+    trainCount: { combat:0, hp:0, stam:0 },
+    weapon: WEAPONS[0], armor: ARMORS[0],
+    potions: 2,
+    kingdom: KINGDOMS[0],
+    log: [],
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILITY
+// ═══════════════════════════════════════════════════
+
+const d6   = () => Math.floor(Math.random() * 6) + 1;
+const rand = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
+
+function pCombat() { return G.baseCombat + G.weapon.atk; }
+function pDef()    { return G.armor.def; }  // flat block from armor only
+
+// Number of d6 dice — every 6 ATK = 1 die (ATK is always a multiple of 6)
+function nDice(atk) { return Math.max(1, Math.floor(atk / 6)); }
+
+// Roll n d6s, return array
+function rollArr(n) { return Array.from({ length: n }, () => d6()); }
+
+// Soft DEF reduction: fraction of raw damage that gets through
+// At DEF 0 = 100%, DEF 10 = 71%, DEF 20 = 56%, DEF 30 = 45%
+function defFrac(defStat) { return 1 - defStat / (defStat + 25); }
+
+// Player damage — returns final value (for quick use)
+function calcPlayerDmg(diceArr) { return playerDetail(diceArr).dmg; }  // wrapper
+// Enemy damage — returns final value
+function calcEnemyDmg(diceArr)  { return enemyDetail(diceArr).dmg; }
+
+// Detailed versions — return all intermediate values for breakdown display
+function playerDetail(diceArr, eDefBlock = 0) {
+  const raw       = diceArr.reduce((a,b) => a+b, 0);
+  const flatBlock = Math.floor(CB.m.def / 6);  // enemy flat armor
+  const block     = flatBlock + eDefBlock;       // total block (armor + dice)
+  const dmg       = Math.max(1, raw - block);
+  return { dmg, raw, flatBlock, eDefBlock, block };
+}
+// Enemy dice split — decides how many dice to allocate to defense vs attack.
+// Currently uses HP-ratio-weighted randomness; future enhancement: weight by
+// enemy intelligence stat so smarter enemies make more strategic decisions.
+function enemyDiceSplit(totalDice, curHp, maxHp) {
+  if (totalDice <= 1) return { atkDice: totalDice, defDice: 0 };
+  const hpRatio     = curHp / maxHp;
+  const defTendency = (1 - hpRatio) * 0.65 + 0.05;  // ~5% at full, ~70% near death
+  if (Math.random() > defTendency) return { atkDice: totalDice, defDice: 0 };
+  const maxDef   = Math.floor(totalDice / 2);
+  const defCount = Math.floor(Math.random() * maxDef) + 1;
+  return { atkDice: totalDice - defCount, defDice: defCount };
+}
+
+function enemyDetail(diceArr, diceBlock = 0) {
+  const raw      = diceArr.reduce((a,b) => a+b, 0);
+  const defBlock = Math.floor(pDef() / 6);     // flat DEF block
+  const block    = defBlock + diceBlock;        // total block
+  const dmg      = Math.max(0, raw - block);
+  return { dmg, raw, defBlock, diceBlock, block };
+}
+
+// Kingdom market price for a category
+function kingdomPrice(basePrice, category) {
+  const mod = MARKET_MODS[G.kingdom.id] || {};
+  return Math.round(basePrice * (mod[category] || 1.0));
+}
+
+function addLog(msg, cls = '') {
+  G.log.unshift({ msg, cls });
+  if (G.log.length > 40) G.log.pop();
+}
+function renderLog() {
+  const el = eid('k-log');
+  if (el) el.innerHTML = G.log.map(e => `<div class="logi ${e.cls}">${e.msg}</div>`).join('');
+}
+function eid(id) { return document.getElementById(id); }
+function pct(v, max) { return Math.max(0, Math.min(100, (v / max) * 100)).toFixed(1) + '%'; }
+
+// ═══════════════════════════════════════════════════
+//  SCREEN ROUTER
+// ═══════════════════════════════════════════════════
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  eid(id).classList.add('active');
+}
+function showTitle()   { show('s-title'); }
+function gotoKingdom() { syncKingdom(); show('s-kingdom'); }
+function gotoMarket()  { mTab_cur = 'w'; syncMarket(); show('s-market'); }
+function gotoTravel()  { syncTravel(); show('s-travel'); }
+
+// ═══════════════════════════════════════════════════
+//  KINGDOM UI
+// ═══════════════════════════════════════════════════
+
+function syncKingdom() {
+  eid('p-day').textContent  = G.day;
+  eid('p-gold').textContent = G.gold;
+  eid('p-hp').textContent   = `${G.hp}/${G.maxHp}`;
+  eid('bar-hp').style.width = pct(G.hp, G.maxHp);
+  eid('p-cbt').textContent  = pCombat();
+  eid('p-arm').textContent  = G.armor.def;
+  eid('p-stam').textContent = `${G.maxStam} max`;
+  eid('p-wpn').textContent  = G.weapon.name;
+  eid('p-pot').textContent  = `${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
+  const cheapest = Math.min(...['atk','def','hp','stam'].map(s => trainCost(s)));
+  eid('p-xp').textContent   = G.xp;
+  eid('bar-xp').style.width = pct(G.xp, cheapest);
+  const canTrain = canAffordAnyTrain();
+  const trainBtn = eid('btn-train');
+  if (trainBtn) trainBtn.className = `btn ${canTrain ? 'btn-gold btn-ready' : 'btn-gray'}`;
+  const k = G.kingdom;
+  eid('k-name').textContent = `${k.icon} ${k.name}`;
+  eid('k-desc').textContent = k.desc;
+  eid('k-mon').textContent  = k.monsters.map(m => MONSTERS[m].name).join(', ');
+  eid('btn-dragon').style.display = k.id === 'ashenvale' ? '' : 'none';
+  eid('btn-rest').disabled = G.hp >= G.maxHp;
+  renderLog();
+}
+
+// ═══════════════════════════════════════════════════
+//  ACTIONS — KINGDOM
+// ═══════════════════════════════════════════════════
+
+function newGame() {
+  initState();
+  addLog('📖 Day 1 — Your quest begins. Slay Pyraxis before Day 30!', 'lhi');
+  addLog('💡 HINT: Visit the marketplace to purchase a weapon.', 'lhi');
+  gotoKingdom();
+}
+
+function rest() {
+  if (G.hp >= G.maxHp) return;
+  if (G.gold < 18) { addLog('❌ Need 18 gold to rest at the inn.', 'lbad'); syncKingdom(); return; }
+  G.gold -= 18;
+  const heal = Math.min(18, G.maxHp - G.hp);
+  G.hp += heal;
+  addLog(`💤 Rested at the inn — healed ${heal} HP. (−18 gold)`, 'lok');
+  syncKingdom();
+  flash('bar-hp', true); flashGold('p-gold');
+}
+
+function explore() {
+  const k = G.kingdom;
+  const mk = k.monsters[Math.floor(Math.random() * k.monsters.length)];
+  beginCombat({ ...MONSTERS[mk] }, false);
+}
+
+function challengeDragon() {
+  addLog("🐉 You charge toward Pyraxis!", 'lbad');
+  beginCombat({ ...DRAGON }, true);
+}
+
+// ═══════════════════════════════════════════════════
+//  TRAVEL
+// ═══════════════════════════════════════════════════
+
+function syncTravel() {
+  eid('t-left').textContent = `${31 - G.day} days left`;
+  const list = eid('t-list');
+  list.innerHTML = '';
+  KINGDOMS.forEach(k => {
+    const isCur = k.id === G.kingdom.id;
+    const days  = travelDays(G.kingdom.id, k.id);
+    const tight = !isCur && (G.day + days > 30);
+    const btn   = document.createElement('button');
+    btn.className = 'kopt' + (isCur ? ' here' : '');
+    btn.disabled  = isCur;
+    btn.innerHTML = `
+      <div class="kico">${k.icon}</div>
+      <div class="kinf2">
+        <div class="knm2">${k.name}${isCur ? ' <span style="font-size:10px;color:var(--hp)">▶ Here</span>' : ''}</div>
+        <div class="kdsc2">${k.desc}</div>
+        ${tight ? '<div class="kwarn">⚠️ May not return in time!</div>' : ''}
+      </div>
+      <div class="tcost"><div class="tdays">${isCur ? '—' : days+'d'}</div><div class="tlbl">${isCur ? '' : 'travel'}</div></div>`;
+    if (!isCur) btn.onclick = () => doTravel(k, days);
+    list.appendChild(btn);
+  });
+}
+
+let pendingTravel = null;
+
+function finishTravel() {
+  const { k, days } = pendingTravel;
+  pendingTravel = null;
+  G.kingdom = k;
+  G.day += days;
+  if (G.day > 30) { endGame('Time ran out. On Day 30, Pyraxis claimed Lyra.'); return; }
+  addLog(`🗺️ Arrived in ${k.name} after ${days} day${days > 1 ? 's' : ''}.`, 'lhi');
+  gotoKingdom();
+}
+
+function doTravel(k, days) {
+  pendingTravel = { k, days };
+  if (Math.random() < 0.25) {
+    const r = Math.random();
+    if (r < 0.40) {
+      // Bandit ambush — always a bandit
+      const mData = { ...MONSTERS.bandit };
+      const goldLoss = Math.max(6, rand(6, 24));
+      showEvt('🦹', 'Bandit Ambush!',
+        `A gang of bandits blocks the road to ${k.name}. Fight them off or hand over your gold.`,
+        [
+          { label: '⚔️ Fight!',        cls: 'btn-red',   fn: () => fightBandit(mData, goldLoss) },
+          { label: `💰 Hand over ${goldLoss}g`, cls: 'btn-gray', fn: () => submitToBandit(goldLoss) },
+        ]
+      );
+      return; // travel completes inside bandit handlers
+    } else if (r < 0.70) {
+      const found = rand(12, 42);
+      G.gold += found;
+      showEvt('💰', 'Lucky Find!', `An abandoned chest on the road. +${found} gold!`);
+      addLog(`💰 Found chest on the road! +${found} gold.`, 'lgld');
+    } else {
+      G.potions += 1;
+      showEvt('🧙', 'Traveling Merchant', 'A kind merchant gifted you a health potion!');
+      addLog('🧪 A merchant gifted you a potion.', 'lok');
+    }
+  }
+  finishTravel();
+}
+
+function submitToBandit(goldLoss) {
+  G.gold = Math.max(0, G.gold - goldLoss);
+  addLog(`🦹 Submitted to bandits. Lost ${goldLoss}g.`, 'lbad');
+  flashGold('p-gold');
+  finishTravel();
+}
+
+function fightBandit(mData, goldLoss) {
+  addLog(`⚔️ You draw your weapon against the bandits!`, 'lok');
+  beginCombat(mData, false);          // CB is reset inside here
+  CB.afterCombat    = finishTravel;   // attach after init
+  CB.banditGoldLoss = goldLoss;
+}
+
+// ═══════════════════════════════════════════════════
+//  MARKET
+// ═══════════════════════════════════════════════════
+
+function syncMarket() {
+  eid('m-gold').textContent = `💰 ${G.gold}`;
+  eid('m-ewpn').textContent = G.weapon.name;
+  eid('m-earm').textContent = G.armor.name;
+  eid('m-epot').textContent = `${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
+  // specialty banner
+  const mod = MARKET_MODS[G.kingdom.id] || {};
+  const specEl = eid('m-kspec');
+  if (mod.label) { specEl.textContent = mod.label; specEl.style.display = ''; }
+  else { specEl.style.display = 'none'; }
+  renderMItems();
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('on', ['w','a','p'][i] === mTab_cur);
+  });
+}
+
+function mTab(t) { mTab_cur = t; syncMarket(); }
+
+// Sell price = 50% of base cost (not discounted price), rounded down
+function sellPrice(baseCost) { return Math.max(0, Math.floor(baseCost * 0.50)); }
+
+function renderMItems() {
+  const box = eid('m-items');
+  if (!box) return;
+  let html = '';
+  if (mTab_cur === 'w') {
+    const tradeIn = sellPrice(G.weapon.cost);
+    WEAPONS.forEach(w => {
+      const owned     = G.weapon.id === w.id;
+      const basePrice = kingdomPrice(w.cost, 'weapons');
+      const sale      = basePrice < w.cost;
+      const netCost   = basePrice - tradeIn;
+      const afford    = netCost <= 0 || G.gold >= netCost;
+      const better    = w.atk > G.weapon.atk;
+      const worse     = w.atk < G.weapon.atk;
+      const tag       = better ? ' <span style="font-size:10px;color:var(--hp)">↑ upgrade</span>'
+                      : worse  ? ' <span style="font-size:10px;color:var(--muted)">↓ downgrade</span>' : '';
+      if (owned) {
+        html += `<div class="irow">
+          <div class="iico">${w.icon}</div>
+          <div class="iinf">
+            <div class="inm">${w.name} <span class="badge">✓ Current</span></div>
+            <div class="istat">+${w.atk} ATK · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
+          </div>
+          <span class="icost" style="color:var(--muted);font-size:11px">${tradeIn > 0 ? `Trade-in: ${tradeIn}g` : '—'}</span>
+        </div>`;
+      } else {
+        const priceEl = netCost < 0
+          ? `<span class="icost" style="color:var(--hp)">+${-netCost}g</span>`
+          : netCost === 0
+            ? `<span class="icost" style="color:var(--muted)">Even</span>`
+            : `<span class="icost" style="color:var(--gold)">${netCost}g${sale ? '<span class="sale"> SALE</span>' : ''}</span>`;
+        html += `<div class="irow">
+          <div class="iico">${w.icon}</div>
+          <div class="iinf">
+            <div class="inm">${w.name}${tag}</div>
+            <div class="istat">+${w.atk} ATK · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
+          </div>
+          ${priceEl}
+          <button class="btn btn-gold ibtn" ${afford ? '' : 'disabled'} onclick="buyItem('w','${w.id}')">${netCost < 0 ? 'Trade' : 'Buy'}</button>
+        </div>`;
+      }
+    });
+  } else if (mTab_cur === 'a') {
+    const tradeIn = sellPrice(G.armor.cost);
+    ARMORS.forEach(a => {
+      const owned     = G.armor.id === a.id;
+      const basePrice = kingdomPrice(a.cost, 'armor');
+      const sale      = basePrice < a.cost;
+      const netCost   = basePrice - tradeIn;
+      const afford    = netCost <= 0 || G.gold >= netCost;
+      const better    = a.def > G.armor.def;
+      const worse     = a.def < G.armor.def;
+      const tag       = better ? ' <span style="font-size:10px;color:var(--hp)">↑ upgrade</span>'
+                      : worse  ? ' <span style="font-size:10px;color:var(--muted)">↓ downgrade</span>' : '';
+      if (owned) {
+        html += `<div class="irow">
+          <div class="iico">${a.icon}</div>
+          <div class="iinf">
+            <div class="inm">${a.name} <span class="badge">✓ Current</span></div>
+            <div class="istat">blocks ${Math.floor(a.def/6)} dmg per hit</div>
+          </div>
+          <span class="icost" style="color:var(--muted);font-size:11px">${tradeIn > 0 ? `Trade-in: ${tradeIn}g` : '—'}</span>
+        </div>`;
+      } else {
+        const priceEl = netCost < 0
+          ? `<span class="icost" style="color:var(--hp)">+${-netCost}g</span>`
+          : netCost === 0
+            ? `<span class="icost" style="color:var(--muted)">Even</span>`
+            : `<span class="icost" style="color:var(--gold)">${netCost}g${sale ? '<span class="sale"> SALE</span>' : ''}</span>`;
+        html += `<div class="irow">
+          <div class="iico">${a.icon}</div>
+          <div class="iinf">
+            <div class="inm">${a.name}${tag}</div>
+            <div class="istat">blocks ${Math.floor(a.def/6)} dmg per hit</div>
+          </div>
+          ${priceEl}
+          <button class="btn btn-gold ibtn" ${afford ? '' : 'disabled'} onclick="buyItem('a','${a.id}')">${netCost < 0 ? 'Trade' : 'Buy'}</button>
+        </div>`;
+      }
+    });
+  } else if (mTab_cur === 'p') {
+    const price  = kingdomPrice(POTION_COST, 'potions');
+    const sale   = price < POTION_COST;
+    const afford = G.gold >= price;
+    html = `<div class="irow">
+      <div class="iico">🧪</div>
+      <div class="iinf">
+        <div class="inm">Health Potion</div>
+        <div class="istat">Restores ${POTION_HEAL} HP · You have: ${G.potions}</div>
+      </div>
+      <span class="icost" style="color:var(--gold)">${sale ? `<span class="orig">${POTION_COST}g</span>` : ''}${price}g${sale ? '<span class="sale">SALE</span>' : ''}</span>
+      <button class="btn btn-green ibtn" ${afford ? '' : 'disabled'} onclick="buyPotion()">Buy</button>
+    </div>`;
+  }
+
+  box.innerHTML = html;
+}
+
+function sellItem(type) {
+  if (type === 'w') {
+    if (G.weapon.cost === 0) return;
+    const val = sellPrice(G.weapon.cost);
+    addLog(`💸 Sold ${G.weapon.name} for ${val}g.`, 'lgld');
+    G.gold += val;
+    G.weapon = WEAPONS[0]; // revert to Rusty Dagger
+  } else if (type === 'a') {
+    if (G.armor.cost === 0) return;
+    const val = sellPrice(G.armor.cost);
+    addLog(`💸 Sold ${G.armor.name} for ${val}g.`, 'lgld');
+    G.gold += val;
+    G.armor = ARMORS[0]; // revert to Peasant Clothes
+  } else if (type === 'p') {
+    if (G.potions <= 0) return;
+    const val = sellPrice(POTION_COST);
+    G.potions--;
+    G.gold += val;
+    addLog(`💸 Sold a potion for ${val}g.`, 'lgld');
+  }
+  syncMarket();
+}
+
+function buyItem(type, id) {
+  if (type === 'w') {
+    const w = WEAPONS.find(x => x.id === id);
+    if (!w) return;
+    const price    = kingdomPrice(w.cost, 'weapons');
+    const tradeIn  = sellPrice(G.weapon.cost);
+    const netCost  = price - tradeIn;
+    if (netCost > 0 && G.gold < netCost) return;
+    const oldName  = G.weapon.name;
+    G.gold        -= netCost;   // negative = gold added
+    G.weapon       = w;
+    if (netCost < 0)      addLog(`⚔️ Traded ${oldName} → ${w.name}. Received ${-netCost}g.`, 'lgld');
+    else if (netCost > 0) addLog(`⚔️ Traded ${oldName} → ${w.name} for ${netCost}g.`, 'lgld');
+    else                  addLog(`⚔️ Traded ${oldName} → ${w.name} even.`, 'lgld');
+  } else {
+    const a = ARMORS.find(x => x.id === id);
+    if (!a) return;
+    const price    = kingdomPrice(a.cost, 'armor');
+    const tradeIn  = sellPrice(G.armor.cost);
+    const netCost  = price - tradeIn;
+    if (netCost > 0 && G.gold < netCost) return;
+    const oldName  = G.armor.name;
+    G.gold        -= netCost;
+    G.armor        = a;
+    if (netCost < 0)      addLog(`🛡️ Traded ${oldName} → ${a.name}. Received ${-netCost}g.`, 'lgld');
+    else if (netCost > 0) addLog(`🛡️ Traded ${oldName} → ${a.name} for ${netCost}g.`, 'lgld');
+    else                  addLog(`🛡️ Traded ${oldName} → ${a.name} even.`, 'lgld');
+  }
+  syncMarket();
+}
+
+function buyPotion() {
+  const price = kingdomPrice(POTION_COST, 'potions');
+  if (G.gold < price) return;
+  G.gold -= price;
+  G.potions++;
+  addLog(`🧪 Bought a potion for ${price}g.`, 'lgld');
+  syncMarket();
+}
+
+// ═══════════════════════════════════════════════════
+//  COMBAT — INIT
+// ═══════════════════════════════════════════════════
+
+function beginCombat(mData, isBoss) {
+  CB = {
+    m:       mData,
+    mHp:     mData.hp,
+    mMaxHp:  mData.hp,
+    boss:    isBoss,
+    over:    false,
+    stamina: G.maxStam,
+    clog:    [],
+  };
+  // header
+  eid('c-eico').innerHTML = mData.img
+    ? `<img src="${mData.img}" alt="${mData.name}">`
+    : mData.icon;
+  eid('c-enm').textContent  = mData.name;
+  eid('c-est').textContent  = `${nDice(mData.atk)}d6 · DEF ${mData.def}`;
+  // reset ui
+  const _stamDice = Math.floor(CB.stamina / 6);
+  const _maxDice  = Math.min(nDice(pCombat()), _stamDice);
+  eid('dice-zone').innerHTML = `<div class="cb-idle">Choose your action.<br>You have ${CB.stamina} stamina and can attack with up to ${_maxDice} ${_maxDice === 1 ? 'die' : 'dice'}. Unused dice will be used for defense.</div>`;
+  const _bz = eid('breakdown-zone');
+  if (_bz) { _bz.style.display = 'none'; }
+  eid('c-actions').innerHTML = `
+    <div id="attack-buttons" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+    <div class="row">
+      <button class="btn btn-gray"  id="btn-def"  onclick="cDefend()">🛡️ Defend</button>
+      <button class="btn btn-green" id="btn-pot"  onclick="cPotion()">🧪 Potion</button>
+      <button class="btn btn-gray"  id="btn-flee" onclick="cFlee()">💨 Flee</button>
+    </div>`;
+  CB.clog = [];
+  syncCombatBars();
+  unlockCombat();
+  show('s-combat');
+}
+
+// ═══════════════════════════════════════════════════
+//  COMBAT — UI SYNC
+// ═══════════════════════════════════════════════════
+
+function syncCombatBars() {
+  eid('bar-ehp').style.width = pct(Math.max(0, CB.mHp), CB.mMaxHp);
+  eid('c-ehp').textContent   = `${Math.max(0, CB.mHp)}/${CB.mMaxHp}`;
+  eid('bar-php').style.width = pct(G.hp, G.maxHp);
+  eid('c-php').textContent   = `${G.hp}/${G.maxHp}`;
+  eid('c-pots').textContent  = `🧪 ${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
+  // stamina bar color
+  const stPct = CB.stamina / G.maxStam;
+  const sc = stPct >= 0.66 ? 'st-hi' : stPct >= 0.33 ? 'st-mid' : 'st-lo';
+  const bar = eid('bar-st');
+  bar.className = `bfill ${sc}`;
+  bar.style.width = pct(CB.stamina, G.maxStam);
+  eid('c-st-txt').textContent = `${CB.stamina} / ${G.maxStam}`;
+}
+
+function clog(msg) {
+  CB.clog.unshift(msg);
+  const el = eid('combat-log');
+  if (el) el.innerHTML = CB.clog.map(l => `<div class="logi">${l}</div>`).join('');
+}
+
+function lockCombat()   { document.querySelectorAll('#c-actions .btn').forEach(b => b.disabled = true); }
+function unlockCombat() {
+  // Re-enable all, then apply rules
+  document.querySelectorAll('#c-actions .btn').forEach(b => b.disabled = false);
+  syncCombatButtons();
+}
+
+// Colors per die count: progressively darker reds
+const ATK_COLORS = ['#e8503a','#d04030','#b83028','#9a2020','#7a1515','#5e1010','#480c0c'];
+
+function syncCombatButtons() {
+  const combatDice  = nDice(pCombat());
+  const stamDice    = Math.floor(CB.stamina / 6);
+  const maxDice     = Math.max(1, Math.min(combatDice, stamDice)); // always show ≥1 button
+  const container   = eid('attack-buttons');
+  container.innerHTML = '';
+
+  for (let d = 1; d <= maxDice; d++) {
+    const isLight  = d === 1;
+    const cost     = d * ST_HEAVY_PER;
+    const canUse   = (stamDice >= d) && (isLight || CB.stamina >= cost);
+    const color    = ATK_COLORS[Math.min(d - 1, ATK_COLORS.length - 1)];
+
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.style.cssText = `background:${color};color:#fff;flex:1;min-width:0`;
+    btn.disabled = (!canUse || CB.over);
+    btn.innerHTML = `🎲×${d} ⚔️`;
+    btn.onclick = () => cAttack(d);
+    container.appendChild(btn);
+  }
+
+  eid('btn-pot').disabled  = G.potions <= 0 || CB.over;
+  eid('btn-flee').disabled = CB.boss        || CB.over;
+}
+
+// ═══════════════════════════════════════════════════
+//  COMBAT — DICE DISPLAY
+// ═══════════════════════════════════════════════════
+
+// ── flash helpers ──────────────────────────────────────────
+function flash(id, positive) {
+  const el = eid(id);
+  if (!el) return;
+  const cls = positive ? 'flash-ok' : 'flash-bad';
+  el.classList.remove('flash-ok','flash-bad','flash-gld');
+  void el.offsetWidth;
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), 650);
+}
+function flashGold(id) {
+  const el = eid(id); if (!el) return;
+  el.classList.remove('flash-ok','flash-bad','flash-gld');
+  void el.offsetWidth;
+  el.classList.add('flash-gld');
+  setTimeout(() => el.classList.remove('flash-gld'), 650);
+}
+
+// ── dice rolling animation ─────────────────────────────────
+const ROLL_MS   = 480;
+const SETTLE_MS = 130;
+
+// ── 3D Dice ───────────────────────────────────────────────
+const _dieState = new Map();
+
+// pip positions (px) in a 3-point grid on 32px face (6px pip, 3px padding)
+const _PIP_POS = [3, 13, 23];
+const _PIP_LAYOUTS = {
+  1: [[1,1]],
+  2: [[0,2],[2,0]],
+  3: [[0,2],[1,1],[2,0]],
+  4: [[0,0],[0,2],[2,0],[2,2]],
+  5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
+  6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
+};
+// which face number lives on each face of the cube
+const _FACE_NUMS = { front:1, back:6, right:3, left:4, top:2, bottom:5 };
+// container rotation (rx, ry) to bring face N toward the viewer
+const _FACE_ROTS = {
+  1: [0,   0],
+  2: [90,  0],
+  3: [0,  -90],
+  4: [0,   90],
+  5: [-90, 0],
+  6: [0,   180],
+};
+
+function _makePips(n) {
+  return (_PIP_LAYOUTS[n] || []).map(([r,c]) =>
+    `<div class="pip" style="top:${_PIP_POS[r]}px;left:${_PIP_POS[c]}px"></div>`
+  ).join('');
+}
+
+function _make3DDie(id) {
+  const faces = ['front','back','right','left','top','bottom'].map(f =>
+    `<div class="face f-${f}">${_makePips(_FACE_NUMS[f])}</div>`
+  ).join('');
+  return `<div class="die-3d" id="${id}">${faces}</div>`;
+}
+
+function _startDieSpin(el) {
+  const vx = 3 + Math.random() * 5;
+  const vy = 4 + Math.random() * 6;
+  const vz = 1 + Math.random() * 3;
+  let rx = Math.random() * 360, ry = Math.random() * 360, rz = Math.random() * 360;
+  el.style.transition = 'none';
+  function tick() {
+    rx += vx; ry += vy; rz += vz;
+    el.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+    const rafId = requestAnimationFrame(tick);
+    _dieState.set(el, { rx, ry, rz, rafId });
+  }
+  const rafId = requestAnimationFrame(tick);
+  _dieState.set(el, { rx, ry, rz, rafId });
+}
+
+function _landDie3D(el, face, delay) {
+  const state = _dieState.get(el);
+  if (state && state.rafId) cancelAnimationFrame(state.rafId);
+  _dieState.delete(el);
+  const [tx, ty] = _FACE_ROTS[face] || [0, 0];
+  const curRx = state ? state.rx : 0;
+  const curRy = state ? state.ry : 0;
+  const finalX = Math.round(curRx / 360) * 360 + tx;
+  const finalY = Math.round(curRy / 360) * 360 + ty;
+  setTimeout(() => {
+    el.style.transition = 'transform 0.42s cubic-bezier(0.22,1.4,0.48,1)';
+    el.style.transform = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+  }, delay);
+}
+
+function _buildCombatGrid(pDice, blockDice, eDice, eDefDice, defeated) {
+  // player attack pool
+  const paPool = pDice.map((_,i) => _make3DDie(`dr-pa-${i}`)).join('');
+  // player defense pool (unused dice rolled for block)
+  const pdPool = blockDice.length
+    ? blockDice.map((_,i) => _make3DDie(`dr-pd-${i}`)).join('')
+    : '<span style="font-size:11px;color:var(--muted)">—</span>';
+  // enemy attack pool
+  const eaPool = defeated
+    ? '<span style="font-size:20px">💀</span>'
+    : eDice.map((_,i) => _make3DDie(`dr-ea-${i}`)).join('');
+  // enemy defense pool — spinning dice if they split, otherwise flat armor display
+  const flatBlk  = Math.floor(CB.m.def / 6);
+  const hasEDef  = eDefDice && eDefDice.length > 0;
+  const edPool   = hasEDef
+    ? eDefDice.map((_,i) => _make3DDie(`dr-ed-${i}`)).join('')
+    : (flatBlk > 0
+        ? `<div style="font-size:18px;line-height:1">🛡️</div><div style="font-size:10px;font-weight:700;color:var(--muted)">${flatBlk} block</div>`
+        : `<span style="font-size:11px;color:var(--muted)">none</span>`);
+  const edLbl = (hasEDef && flatBlk > 0) ? `🛡️ Armor +${flatBlk} block` : '';
+
+  // flat-damage modifiers only (weapon ATK adds dice, not flat damage → omit)
+  const armorFlatBlk = Math.floor(G.armor.def / 6);
+  const pdLbl = armorFlatBlk > 0 ? `🛡️ Armor +${armorFlatBlk} block` : '';
+
+  eid('dice-zone').innerHTML = `<div class="cb-grid">
+    <div class="cb-box" id="cb-pa">
+      <div class="cb-hd">⚔️ Your Attack</div>
+      <div class="cb-pool">${paPool}</div>
+    </div>
+    <div class="cb-box" id="cb-ea">
+      <div class="cb-hd">⚔️ Enemy Attack</div>
+      <div class="cb-pool">${eaPool}</div>
+    </div>
+    <div class="cb-box" id="cb-pd">
+      <div class="cb-hd">🛡️ Your Defense</div>
+      <div class="cb-pool">${pdPool}</div>
+      ${pdLbl ? `<div class="cb-lbl">${pdLbl}</div>` : ''}
+    </div>
+    <div class="cb-box" id="cb-ed">
+      <div class="cb-hd">🛡️ Enemy Defense</div>
+      <div class="cb-pool" style="min-height:32px">${edPool}</div>
+      ${edLbl ? `<div class="cb-lbl">${edLbl}</div>` : ''}
+    </div>
+    <div class="cb-sum" id="cb-ps" style="opacity:.3">—</div>
+    <div class="cb-sum" id="cb-es" style="opacity:.3">—</div>
+  </div>`;
+
+  // hide breakdown-zone during active combat
+  const bz = eid('breakdown-zone'); if(bz) bz.style.display = 'none';
+
+  // start spinning all attack/block dice
+  pDice.forEach((_,i)     => { const d=eid(`dr-pa-${i}`); if(d) _startDieSpin(d); });
+  blockDice.forEach((_,i) => { const d=eid(`dr-pd-${i}`); if(d) _startDieSpin(d); });
+  if (!defeated) eDice.forEach((_,i) => { const d=eid(`dr-ea-${i}`); if(d) _startDieSpin(d); });
+  if (!defeated && hasEDef) eDefDice.forEach((_,i) => { const d=eid(`dr-ed-${i}`); if(d) _startDieSpin(d); });
+}
+
+function _landCombatGrid(pDice, pd, blockDice, eDice, ed, eTaken, defeated) {
+  let delay = 0;
+  pDice.forEach((v,i)    => { const d=eid(`dr-pa-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
+  blockDice.forEach((v,i) => { const d=eid(`dr-pd-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
+  if (!defeated) eDice.forEach((v,i) => { const d=eid(`dr-ea-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
+
+  setTimeout(() => {
+    // summaries
+    const ps = eid('cb-ps'), es = eid('cb-es');
+    if (ps) {
+      ps.textContent = pd.block > 0
+        ? `${pd.raw} − ${pd.block} = ${pd.dmg} dealt`
+        : `${pd.dmg} dealt`;
+      ps.style.opacity = '';
+      ps.className = 'cb-sum' + (pd.dmg > 0 ? ' p-win' : '');
+    }
+    if (es) {
+      if (defeated) {
+        es.textContent = '💀 Enemy Defeated';
+        es.className = 'cb-sum p-win';
+      } else {
+        const totalBlk = (ed?.defBlock ?? 0) + (ed?.diceBlock ?? 0);
+        es.textContent = totalBlk > 0
+          ? `${ed.raw} − ${totalBlk} = ${eTaken} taken`
+          : `${eTaken} taken`;
+        es.style.opacity = '';
+        es.className = 'cb-sum' + (eTaken > 0 ? ' e-win' : '');
+      }
+    }
+    // win/lose box tinting
+    const pa = eid('cb-pa'); if(pa) pa.className = 'cb-box' + (pd.dmg > 0 ? ' win' : '');
+    const pd_ = eid('cb-pd');
+    if (pd_ && !defeated) pd_.className = 'cb-box' + (eTaken === 0 && (blockDice.length > 0 || G.armor.def > 0) ? ' win' : '');
+    const ea = eid('cb-ea');
+    if (ea) ea.className = 'cb-box' + (defeated ? ' win' : eTaken > 0 ? ' lose' : '');
+  }, SETTLE_MS);
+}
+
+// ── Breakdown HTML builders ───────────────────────────────
+
+function _pill(text, color) {
+  return `<span class="pill pill-${color}">${text}</span>`;
+}
+function _bdr(label, content) {
+  return `<div class="bdr"><span class="bl">${label}</span>${content}</div>`;
+}
+
+function _attackBreakdown(pDice, pd, eDice, ed, diceBlock, eTaken, defeated) {
+  const pSum = pDice.join(' + ');
+
+  const playerSide = `
+    <div class="bds">
+      <div class="bdhd">⚔️ Your Attack</div>
+      ${_bdr('Dice',           `<span>${pSum} = ${pd.raw}</span>`)}
+      ${pd.block > 0 ? _bdr('Their Defense', _pill(`−${pd.block}`, 'red')) : ''}
+      <div class="bdsep"></div>
+      ${_bdr('Dealt',          _pill(`${pd.dmg} dmg`, 'green'))}
+    </div>`;
+
+  let enemySide;
+  if (defeated) {
+    enemySide = `<div class="bds" style="justify-content:center;align-items:center">
+      <div style="font-size:28px">💀</div>
+      <div class="bdhd" style="color:var(--hp);text-align:center">Enemy Defeated</div>
+    </div>`;
+  } else {
+    const eSum = eDice.join(' + ');
+    enemySide = `
+      <div class="bds">
+        <div class="bdhd">💢 Their Attack</div>
+        ${_bdr('Dice',           `<span>${eSum} = ${ed.raw}</span>`)}
+        ${ed.defBlock > 0 ? _bdr('Your Defense', _pill(`−${ed.defBlock}`, 'green')) : ''}
+        ${ed.diceBlock > 0 ? _bdr('Block Roll',  _pill(`−${ed.diceBlock}`, 'green')) : ''}
+        <div class="bdsep"></div>
+        ${_bdr('Taken', _pill(`${eTaken} dmg`, eTaken > 0 ? 'red' : 'green'))}
+      </div>`;
+  }
+  return `<div class="bdwrap">${playerSide}${enemySide}</div>`;
+}
+
+function _defendBreakdown(ed, absorbed, taken) {
+  return `
+    <div class="bdwrap">
+      <div class="bds" style="justify-content:center">
+        <div class="bdhd">🛡️ Defend</div>
+        ${_bdr('Stamina restored', _pill(`+${ST_DEFEND}⚡`, 'gold'))}
+        ${ed.block > 0 ? _bdr('Your Defense', _pill(`−${ed.block}`, 'green')) : ''}
+        ${absorbed > 0 ? _bdr('Defend bonus', _pill(`−${absorbed}`, 'green')) : ''}
+      </div>
+      <div class="bds">
+        <div class="bdhd">💢 Their Attack</div>
+        ${_bdr('Dice sum', `<span>${ed.raw}</span>`)}
+        <div class="bdsep"></div>
+        ${_bdr('Taken', _pill(`${taken} dmg`, taken > 0 ? 'red' : 'green'))}
+      </div>
+    </div>`;
+}
+
+// ── Dice display ─────────────────────────────────────────
+
+// ── Combat end result panel ───────────────────────────────
+function _showCombatEndResult(ico, titleColor, title, rows, onContinue) {
+  // clear the dice grid and restore breakdown-zone for the end result
+  eid('dice-zone').innerHTML = '';
+  const bzone = eid('breakdown-zone');
+  if (bzone) {
+    bzone.style.display = 'flex';
+    bzone.style.alignItems = 'flex-start';
+    bzone.innerHTML = `
+      <div style="width:100%">
+        <div style="text-align:center;margin-bottom:12px">
+          <div style="font-size:34px">${ico}</div>
+          <div style="font-size:15px;font-weight:800;color:${titleColor};margin-top:4px">${title}</div>
+        </div>
+        <div class="bds">${rows}</div>
+      </div>`;
+  }
+  const actions = eid('c-actions');
+  if (actions) {
+    actions.innerHTML = `<button class="btn btn-gray" id="btn-continue" style="font-size:15px;font-weight:700">Continue →</button>`;
+    eid('btn-continue').onclick = onContinue;
+  }
+}
+
+// pd = playerDetail object, ed = enemyDetail object (or null if defeated)
+function showDiceResult(pDice, pd, eDice, ed, blockDice, eTaken, defeated) {
+  _buildCombatGrid(pDice, blockDice, defeated ? [] : eDice, defeated);
+  setTimeout(() => { _landCombatGrid(pDice, pd, blockDice, defeated ? [] : eDice, ed, eTaken, defeated); }, ROLL_MS);
+}
+
+function showDefendResult(eDice, ed, defDice, taken) {
+  const flatBlk = Math.floor(CB.m.def / 6);
+  const edDisp  = flatBlk > 0
+    ? `<div style="font-size:18px;line-height:1">🛡️</div><div style="font-size:10px;font-weight:700;color:var(--muted)">${flatBlk} block</div>`
+    : `<span style="font-size:11px;color:var(--muted)">none</span>`;
+
+  eid('dice-zone').innerHTML = `<div class="cb-grid">
+    <div class="cb-box">
+      <div class="cb-hd">⚔️ Your Attack</div>
+      <div class="cb-pool" style="min-height:32px"><span style="font-size:11px;color:var(--muted)">—</span></div>
+    </div>
+    <div class="cb-box" id="cb-def-ea">
+      <div class="cb-hd">⚔️ Enemy Attack</div>
+      <div class="cb-pool">${eDice.map((_,i)=>_make3DDie(`dr-ea-${i}`)).join('')}</div>
+    </div>
+    <div class="cb-box" id="cb-pd-def">
+      <div class="cb-hd">🛡️ Your Defense</div>
+      <div class="cb-pool">${_make3DDie('dr-pd-0')}</div>
+      ${G.armor.def > 0 ? `<div class="cb-lbl">🛡️ Armor +${Math.floor(G.armor.def/6)} block</div>` : ''}
+    </div>
+    <div class="cb-box" id="cb-ed">
+      <div class="cb-hd">🛡️ Enemy Defense</div>
+      <div class="cb-pool" style="min-height:32px">${edDisp}</div>
+    </div>
+    <div class="cb-sum" id="cb-def-ps" style="opacity:.3">—</div>
+    <div class="cb-sum" id="cb-def-es" style="opacity:.3">—</div>
+  </div>`;
+
+  const bz = eid('breakdown-zone'); if(bz) bz.style.display = 'none';
+  const defEl = eid('dr-pd-0'); if(defEl) _startDieSpin(defEl);
+  eDice.forEach((_,i) => { const d=eid(`dr-ea-${i}`); if(d) _startDieSpin(d); });
+
+  setTimeout(() => {
+    if(defEl) _landDie3D(defEl, defDice[0], 0);
+    eDice.forEach((v,i) => { const d=eid(`dr-ea-${i}`); if(d) _landDie3D(d,v,(i+1)*60); });
+    setTimeout(() => {
+      const ps = eid('cb-def-ps'), es = eid('cb-def-es');
+      if (ps) { ps.textContent = '— no attack —'; ps.style.opacity=''; }
+      if (es) {
+        es.textContent = ed.block > 0
+          ? `${ed.raw} − ${ed.block} = ${taken} taken`
+          : `${taken} taken`;
+        es.style.opacity='';
+        es.className = 'cb-sum' + (taken > 0 ? ' e-win' : '');
+      }
+      const ea = eid('cb-def-ea');
+      if (ea) ea.className = 'cb-box' + (taken > 0 ? ' lose' : '');
+      const pd_ = eid('cb-pd-def');
+      if (pd_) pd_.className = 'cb-box' + (taken === 0 ? ' win' : '');
+    }, SETTLE_MS);
+  }, ROLL_MS);
+}
+
+// ═══════════════════════════════════════════════════
+//  COMBAT — STAMINA HELPERS
+// ═══════════════════════════════════════════════════
+
+function staminaCost(cost) {
+  CB.stamina = Math.max(0, CB.stamina - cost);
+}
+
+// ═══════════════════════════════════════════════════
+//  COMBAT — ACTIONS
+// ═══════════════════════════════════════════════════
+
+// diceCount = number of dice to roll (1 = light/restorative, N = heavy/costly)
+function cAttack(diceCount) {
+  if (CB.over) return;
+  lockCombat();
+
+  const isLight = diceCount === 1;
+  const cost    = diceCount * ST_HEAVY_PER;
+
+  if (isLight) {
+    CB.stamina = Math.min(G.maxStam, CB.stamina + ST_LIGHT_RESTORE);
+  } else {
+    if (CB.stamina < cost) { unlockCombat(); return; }
+    staminaCost(cost);
+  }
+
+  // Player rolls
+  const pDice = rollArr(diceCount);
+  const pd    = playerDetail(pDice);
+  CB.mHp -= pd.dmg;
+
+  // Enemy counter (if alive)
+  // Unused combat dice (stamina-gated pool minus dice used for attack) go to block roll
+  const defeated = CB.mHp <= 0;
+  let eDice = [], ed = null, eTaken = 0, diceBlock = 0, blockDice = [];
+  if (!defeated) {
+    const availDice  = Math.min(nDice(pCombat()), Math.floor(CB.stamina / 6));
+    const unusedDice = Math.max(0, availDice - diceCount);
+    blockDice        = unusedDice > 0 ? rollArr(unusedDice) : [];
+    diceBlock        = blockDice.reduce((a, b) => a + b, 0);
+    eDice            = rollArr(nDice(CB.m.atk));
+    ed               = enemyDetail(eDice, diceBlock);
+    eTaken           = ed.dmg;
+    G.hp             = Math.max(0, G.hp - eTaken);
+  }
+
+  showDiceResult(pDice, pd, eDice, ed, blockDice, eTaken, defeated);
+  syncCombatBars();
+  flash('bar-ehp', false);
+  if (eTaken > 0) flash('bar-php', false);
+  flash('bar-st', isLight);
+
+  if (CB.mHp <= 0) { setTimeout(combatWin, 2950); return; }
+  if (G.hp   <= 0) { setTimeout(combatLose, 950); return; }
+  setTimeout(unlockCombat, ROLL_MS + SETTLE_MS + 80);
+}
+
+function cDefend() {
+  if (CB.over) return;
+  lockCombat();
+
+  CB.stamina = Math.min(G.maxStam, CB.stamina + ST_DEFEND);
+
+  // Roll 1d6 for defense block, then enemy attacks
+  const defDice   = rollArr(1);
+  const diceBlock = defDice[0];
+  const eDice     = rollArr(nDice(CB.m.atk));
+  const ed        = enemyDetail(eDice, diceBlock);
+  const taken     = ed.dmg;
+  G.hp = Math.max(0, G.hp - taken);
+
+  showDefendResult(eDice, ed, defDice, taken);
+  syncCombatBars();
+  flash('bar-st', true);
+  if (taken > 0) flash('bar-php', false);
+
+  if (G.hp <= 0) { setTimeout(combatLose, 950); return; }
+  setTimeout(unlockCombat, ROLL_MS + SETTLE_MS + 80);
+}
+
+function cPotion() {
+  if (CB.over || G.potions <= 0) return;
+  G.potions--;
+  const heal = Math.min(POTION_HEAL, G.maxHp - G.hp);
+  G.hp += heal;
+  clog(`🧪 You drink a potion and recover ${heal} HP.`);
+
+  // Enemy free attack
+  const eDice = rollArr(nDice(CB.m.atk));
+  const eDmg  = calcEnemyDmg(eDice);
+  G.hp = Math.max(0, G.hp - eDmg);
+  clog(`${CB.m.name} attacks while you drink! ${eDmg} damage.`);
+
+  syncCombatBars();
+  flash('bar-php', true);  // healed
+  setTimeout(() => flash('bar-php', false), 300); // then took damage
+  if (G.hp <= 0) { setTimeout(combatLose, 950); return; }
+  unlockCombat();
+}
+
+function cFlee() {
+  if (CB.over || CB.boss) return;
+  if (Math.random() >= 0.45) {
+    CB.over = true;
+    clog('💨 You managed to escape!');
+    addLog(`💨 Fled from the ${CB.m.name}.`, 'lbad');
+    lockCombat();
+    setTimeout(gotoKingdom, 1100);
+  } else {
+    const eDice = rollArr(nDice(CB.m.atk));
+    const eDmg  = calcEnemyDmg(eDice);
+    G.hp = Math.max(0, G.hp - eDmg);
+    clog(`Failed to flee! ${CB.m.name} hits for ${eDmg} damage.`);
+    syncCombatBars();
+    if (G.hp <= 0) { setTimeout(combatLose, 950); return; }
+    unlockCombat();
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  COMBAT — RESOLUTION
+// ═══════════════════════════════════════════════════
+
+function combatWin() {
+  CB.over = true;
+  lockCombat();
+  const gold = rand(CB.m.glo, CB.m.ghi);
+  G.gold += gold;
+
+  if (CB.boss) {
+    _showCombatEndResult(
+      '🏆', 'var(--gold)', 'Pyraxis Slain!',
+      `${_bdr('Lyra is saved!', _pill('Victory!', 'gold'))}
+       ${_bdr('Total XP', _pill(`${G.xp} XP`, 'green'))}`,
+      winGame
+    );
+    return;
+  }
+
+  G.xp += CB.m.xp;
+  addLog(`⚔️ Slew a ${CB.m.name}! +${CB.m.xp} XP, +${gold}g.`, 'lok');
+  flashGold('p-gold'); flash('bar-xp', true);
+
+  const onContinue = CB.afterCombat || gotoKingdom;
+  const destRow    = CB.afterCombat
+    ? _bdr('Continuing to', `<span style="color:var(--muted);font-size:12px">${pendingTravel ? pendingTravel.k.name : ''}</span>`)
+    : '';
+  _showCombatEndResult(
+    '⚔️', 'var(--hp)', `${CB.m.name} Defeated!`,
+    `${_bdr('XP gained',  _pill(`+${CB.m.xp} XP`, 'green'))}
+     ${_bdr('Gold found', _pill(`+${gold}g`, 'gold'))}
+     ${_bdr('Your HP',    _pill(`${G.hp} / ${G.maxHp}`, G.hp > G.maxHp * 0.5 ? 'green' : 'red'))}
+     ${destRow}`,
+    onContinue
+  );
+
+}
+
+function combatLose() {
+  CB.over = true;
+  lockCombat();
+
+  if (CB.boss) {
+    _showCombatEndResult(
+      '💀', 'var(--accent)', 'Pyraxis Defeated You…',
+      `${_bdr("Lyra's fate", _pill('Sealed', 'red'))}`,
+      () => endGame("You were slain by Pyraxis the Dragon. Lyra's fate is sealed.")
+    );
+    return;
+  }
+
+  if (CB.banditGoldLoss) {
+    // Bandit fight loss: lose the bandit's gold demand, keep HP as-is, still travel
+    const lost = Math.min(CB.banditGoldLoss, G.gold);
+    G.gold = Math.max(0, G.gold - lost);
+    G.hp   = Math.max(1, G.hp);
+    addLog(`💔 Beaten by bandits. Lost ${lost}g.`, 'lbad');
+    flashGold('p-gold');
+    syncCombatBars();
+    _showCombatEndResult(
+      '💔', 'var(--accent)', 'Beaten by Bandits',
+      `${_bdr('Gold taken',      _pill(`−${lost}g`, 'red'))}
+       ${_bdr('HP remaining',    _pill(`${G.hp} / ${G.maxHp}`, 'red'))}
+       ${_bdr('Continuing to',   `<span style="color:var(--muted);font-size:12px">${pendingTravel ? pendingTravel.k.name : ''}</span>`)}`,
+      CB.afterCombat || gotoKingdom
+    );
+    return;
+  }
+
+  const lost = Math.max(0, Math.floor(G.gold * 0.25));
+  G.gold -= lost;
+  G.hp = Math.max(1, Math.floor(G.maxHp * 0.3));
+  addLog(`💔 Knocked out by ${CB.m.name}. Lost ${lost}g.`, 'lbad');
+  flashGold('p-gold');
+  syncCombatBars();
+
+  _showCombatEndResult(
+    '💔', 'var(--accent)', `Defeated by ${CB.m.name}`,
+    `${_bdr('Gold lost',        _pill(`−${lost}g`, 'red'))}
+     ${_bdr('HP remaining',     _pill(`${G.hp} / ${G.maxHp}`, 'red'))}
+     ${_bdr('Dragged back to',  `<span style="color:var(--muted);font-size:12px">${G.kingdom.name}</span>`)}`,
+    gotoKingdom
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  TRAINING
+// ═══════════════════════════════════════════════════
+
+function trainCost(stat) {
+  return 60 * Math.pow(2, G.trainCount[stat]);
+}
+
+function canAffordAnyTrain() {
+  return ['combat','hp','stam'].some(s => G.xp >= trainCost(s));
+}
+
+function gotoTrain() { syncTrain(); show('s-train'); }
+
+function syncTrain() {
+  eid('tr-xp').textContent = `⭐ ${G.xp} XP`;
+  const cbt     = pCombat();
+  const stamDice = Math.floor(G.maxStam / 6);
+  const stats = [
+    { key:'combat', icon:'⚔️', label:'Combat',  cur: `${cbt} · up to ${nDice(cbt)}d6`,           next: `→ ${cbt+6} · up to ${nDice(cbt+6)}d6`           },
+    { key:'hp',     icon:'❤️', label:'Health',  cur: `${G.maxHp} max HP`,                          next: `→ ${G.maxHp+6} max HP`                           },
+    { key:'stam',   icon:'⚡', label:'Stamina', cur: `${G.maxStam} max · ${stamDice} dice`,        next: `→ ${G.maxStam+6} max · ${stamDice+1} dice`       },
+  ];
+  eid('tr-content').innerHTML = stats.map(s => {
+    const cost   = trainCost(s.key);
+    const afford = G.xp >= cost;
+    return `<div class="irow">
+      <div class="iico">${s.icon}</div>
+      <div class="iinf">
+        <div class="inm">${s.label} <span style="font-weight:400;color:var(--text)">${s.cur}</span></div>
+        <div class="istat">${s.next} &nbsp;·&nbsp; ${G.trainCount[s.key]} upgrade${G.trainCount[s.key]!==1?'s':''}</div>
+      </div>
+      <span class="icost" style="color:var(--mp);white-space:nowrap">${cost} XP</span>
+      <button class="btn btn-purple ibtn" ${afford?'':'disabled'} onclick="doTrain('${s.key}')">Train</button>
+    </div>`;
+  }).join('');
+}
+
+function doTrain(stat) {
+  const cost = trainCost(stat);
+  if (G.xp < cost) return;
+  G.xp -= cost;
+  G.trainCount[stat]++;
+  const labels = { combat:'Combat', hp:'Health', stam:'Stamina' };
+  switch(stat) {
+    case 'combat': G.baseCombat += 6; break;
+    case 'hp':     G.maxHp      += 6; G.hp = Math.min(G.maxHp, G.hp + 6); break;
+    case 'stam':   G.maxStam    += 6; break;
+  }
+  addLog(`📚 Trained ${labels[stat]} +6. (${cost} XP)`, 'lok');
+  syncTrain();
+  // update train button highlight on return
+  const btn = eid('btn-train');
+  if (btn) {
+    btn.className = `btn ${canAffordAnyTrain() ? 'btn-gold btn-ready' : 'btn-gray'}`;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  EVENTS
+// ═══════════════════════════════════════════════════
+
+function openJournal()  { renderLog(); eid('journal-modal').classList.add('on'); }
+function closeJournal() { eid('journal-modal').classList.remove('on'); }
+
+// choices: optional array of {label, cls, fn} — if omitted, shows a single Continue button
+function showEvt(ico, title, desc, choices) {
+  eid('evt-ico').textContent   = ico;
+  eid('evt-title').textContent = title;
+  eid('evt-desc').textContent  = desc;
+  const btn1 = eid('evt-btn1');
+  const btn2 = eid('evt-btn2');
+  if (choices && choices.length >= 2) {
+    btn1.textContent = choices[0].label;
+    btn1.className   = `btn ${choices[0].cls || 'btn-red'}`;
+    btn1.onclick     = () => { closeEvt(); choices[0].fn(); };
+    btn2.textContent = choices[1].label;
+    btn2.className   = `btn ${choices[1].cls || 'btn-gray'}`;
+    btn2.onclick     = () => { closeEvt(); choices[1].fn(); };
+    btn2.style.display = '';
+  } else {
+    btn1.textContent = 'Continue';
+    btn1.className   = 'btn btn-red';
+    btn1.onclick     = closeEvt;
+    btn2.style.display = 'none';
+  }
+  eid('evt-modal').classList.add('on');
+}
+function closeEvt() {
+  eid('evt-btn2').style.display = 'none';
+  eid('evt-btn1').onclick = closeEvt;
+  eid('evt-modal').classList.remove('on');
+}
+
+// ═══════════════════════════════════════════════════
+//  END STATES
+// ═══════════════════════════════════════════════════
+
+function endGame(reason) {
+  eid('lose-desc').textContent = reason;
+  show('s-lose');
+}
+
+function winGame() {
+  const dl = 30 - G.day;
+  const timing = dl > 0 ? `with ${dl} day${dl !== 1 ? 's' : ''} to spare` : 'just in time';
+  eid('win-desc').textContent =
+    `You slew Pyraxis ${timing} and rescued Lyra. The kingdom rejoices!`;
+  show('s-win');
+}
+</script>
+</body>
+</html>
