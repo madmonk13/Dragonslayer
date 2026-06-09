@@ -1410,11 +1410,12 @@ function _buildCombatGrid(pDice, blockDice, eDice, eDefDice, defeated) {
   if (!defeated && hasEDef) eDefDice.forEach((_,i) => { const d=eid(`dr-ed-${i}`); if(d) _startDieSpin(d); });
 }
 
-function _landCombatGrid(pDice, pd, blockDice, eDice, ed, eTaken, defeated) {
+function _landCombatGrid(pDice, pd, blockDice, eDice, eDefDice, ed, eTaken, defeated) {
   let delay = 0;
-  pDice.forEach((v,i)    => { const d=eid(`dr-pa-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
+  pDice.forEach((v,i)     => { const d=eid(`dr-pa-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
   blockDice.forEach((v,i) => { const d=eid(`dr-pd-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
   if (!defeated) eDice.forEach((v,i) => { const d=eid(`dr-ea-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
+  if (!defeated && eDefDice) eDefDice.forEach((v,i) => { const d=eid(`dr-ed-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
 
   setTimeout(() => {
     // summaries
@@ -1464,7 +1465,8 @@ function _attackBreakdown(pDice, pd, eDice, ed, diceBlock, eTaken, defeated) {
     <div class="bds">
       <div class="bdhd">⚔️ Your Attack</div>
       ${_bdr('Dice',           `<span>${pSum} = ${pd.raw}</span>`)}
-      ${pd.block > 0 ? _bdr('Their Defense', _pill(`−${pd.block}`, 'red')) : ''}
+      ${pd.flatBlock > 0 ? _bdr('Their Armor',     _pill(`−${pd.flatBlock}`, 'red')) : ''}
+      ${pd.eDefBlock > 0 ? _bdr('Their Dice Block', _pill(`−${pd.eDefBlock}`, 'red')) : ''}
       <div class="bdsep"></div>
       ${_bdr('Dealt',          _pill(`${pd.dmg} dmg`, 'green'))}
     </div>`;
@@ -1535,9 +1537,9 @@ function _showCombatEndResult(ico, titleColor, title, rows, onContinue) {
 }
 
 // pd = playerDetail object, ed = enemyDetail object (or null if defeated)
-function showDiceResult(pDice, pd, eDice, ed, blockDice, eTaken, defeated) {
-  _buildCombatGrid(pDice, blockDice, defeated ? [] : eDice, defeated);
-  setTimeout(() => { _landCombatGrid(pDice, pd, blockDice, defeated ? [] : eDice, ed, eTaken, defeated); }, ROLL_MS);
+function showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defeated) {
+  _buildCombatGrid(pDice, blockDice, defeated ? [] : eDice, defeated ? [] : eDefDice, defeated);
+  setTimeout(() => { _landCombatGrid(pDice, pd, blockDice, defeated ? [] : eDice, defeated ? [] : eDefDice, ed, eTaken, defeated); }, ROLL_MS);
 }
 
 function showDefendResult(eDice, ed, defDice, taken) {
@@ -1620,9 +1622,16 @@ function cAttack(diceCount) {
     staminaCost(cost);
   }
 
-  // Player rolls
+  // Enemy decides how many dice to commit to defense (based on current HP, before damage)
+  const totalEDice              = nDice(CB.m.atk);
+  const { atkDice: eAtkCount,
+          defDice: eDefCount }  = enemyDiceSplit(totalEDice, CB.mHp, CB.m.hp);
+  const eDefDice                = eDefCount > 0 ? rollArr(eDefCount) : [];
+  const eDefBlock               = eDefDice.reduce((a,b) => a+b, 0);
+
+  // Player rolls — enemy defense dice reduce player damage
   const pDice = rollArr(diceCount);
-  const pd    = playerDetail(pDice);
+  const pd    = playerDetail(pDice, eDefBlock);
   CB.mHp -= pd.dmg;
 
   // Enemy counter (if alive)
@@ -1634,20 +1643,20 @@ function cAttack(diceCount) {
     const unusedDice = Math.max(0, availDice - diceCount);
     blockDice        = unusedDice > 0 ? rollArr(unusedDice) : [];
     diceBlock        = blockDice.reduce((a, b) => a + b, 0);
-    eDice            = rollArr(nDice(CB.m.atk));
+    eDice            = rollArr(eAtkCount);  // only the attack-allocated dice
     ed               = enemyDetail(eDice, diceBlock);
     eTaken           = ed.dmg;
     G.hp             = Math.max(0, G.hp - eTaken);
   }
 
-  showDiceResult(pDice, pd, eDice, ed, blockDice, eTaken, defeated);
+  showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defeated);
   syncCombatBars();
   flash('bar-ehp', false);
   if (eTaken > 0) flash('bar-php', false);
   flash('bar-st', isLight);
 
-  if (CB.mHp <= 0) { setTimeout(combatWin, 2950); return; }
-  if (G.hp   <= 0) { setTimeout(combatLose, 950); return; }
+  if (CB.mHp <= 0) { setTimeout(combatWin, 1475); return; }
+  if (G.hp   <= 0) { setTimeout(combatLose, 1475); return; }
   setTimeout(unlockCombat, ROLL_MS + SETTLE_MS + 80);
 }
 
@@ -1670,7 +1679,7 @@ function cDefend() {
   flash('bar-st', true);
   if (taken > 0) flash('bar-php', false);
 
-  if (G.hp <= 0) { setTimeout(combatLose, 950); return; }
+  if (G.hp <= 0) { setTimeout(combatLose, 1475); return; }
   setTimeout(unlockCombat, ROLL_MS + SETTLE_MS + 80);
 }
 
@@ -1690,7 +1699,7 @@ function cPotion() {
   syncCombatBars();
   flash('bar-php', true);  // healed
   setTimeout(() => flash('bar-php', false), 300); // then took damage
-  if (G.hp <= 0) { setTimeout(combatLose, 950); return; }
+  if (G.hp <= 0) { setTimeout(combatLose, 1475); return; }
   unlockCombat();
 }
 
@@ -1708,7 +1717,7 @@ function cFlee() {
     G.hp = Math.max(0, G.hp - eDmg);
     clog(`Failed to flee! ${CB.m.name} hits for ${eDmg} damage.`);
     syncCombatBars();
-    if (G.hp <= 0) { setTimeout(combatLose, 950); return; }
+    if (G.hp <= 0) { setTimeout(combatLose, 1475); return; }
     unlockCombat();
   }
 }
