@@ -419,19 +419,21 @@ body {
 
   <div class="card">
     <div class="clabel">Hero</div>
-    <div style="display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap">
-      <span>⚔️ Combat <strong id="p-cbt" style="color:var(--text)">6</strong></span>
-      <span>🛡️ Armor <strong id="p-arm" style="color:var(--text)">0</strong></span>
-      <span>⚡ <span id="p-stam" style="color:var(--text)">24 max</span></span>
-      <span>🗡️ <span id="p-wpn" style="color:var(--text)">Rusty Dagger</span></span>
-      <span>🧪 <span id="p-pot" style="color:var(--text)">2 potions</span></span>
-    </div>
-    <div style="margin-top:8px">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">
-        <span>XP</span><span id="p-xp">0</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;font-size:12.5px;color:var(--muted)">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <span>🗡️ <span id="p-wpn" style="color:var(--text)">Rusty Dagger</span></span>
+        <span>🛡️ <span id="p-arm" style="color:var(--text)">Peasant Clothes</span></span>
+        <span>🧪 <span id="p-pot" style="color:var(--text)">2 potions</span></span>
       </div>
-      <div class="bwrap"><div class="bfill xp" id="bar-xp" style="width:0%"></div></div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <span>⚔️ <span id="p-cbt" style="color:var(--text)">6, 1 die</span></span>
+        <span>⚡ <span id="p-stam" style="color:var(--text)">24 max</span></span>
+      </div>
     </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px">
+      <span>XP</span><span id="p-xp">0</span>
+    </div>
+    <div class="bwrap"><div class="bfill xp" id="bar-xp" style="width:0%"></div></div>
   </div>
 
   <div class="card">
@@ -863,12 +865,14 @@ function syncKingdom() {
   eid('p-gold').textContent = G.gold;
   eid('p-hp').textContent   = `${G.hp}/${G.maxHp}`;
   eid('bar-hp').style.width = pct(G.hp, G.maxHp);
-  eid('p-cbt').textContent  = pCombat();
-  eid('p-arm').textContent  = G.armor.def;
+  const cbtVal  = pCombat();
+  const cbtDice = nDice(cbtVal);
+  eid('p-cbt').textContent = `${cbtVal}, ${cbtDice} ${cbtDice === 1 ? 'die' : 'dice'}`;
+  eid('p-arm').textContent  = G.armor.name;
   eid('p-stam').textContent = `${G.maxStam} max`;
   eid('p-wpn').textContent  = G.weapon.name;
   eid('p-pot').textContent  = `${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
-  const cheapest = Math.min(...['atk','def','hp','stam'].map(s => trainCost(s)));
+  const cheapest = Math.min(...['combat','hp','stam'].map(s => trainCost(s)));
   eid('p-xp').textContent   = G.xp;
   eid('bar-xp').style.width = pct(G.xp, cheapest);
   const canTrain = canAffordAnyTrain();
@@ -1087,7 +1091,7 @@ function renderMItems() {
           <div class="iico">${w.icon}</div>
           <div class="iinf">
             <div class="inm">${w.name} <span class="badge">✓ Current</span></div>
-            <div class="istat">+${w.atk} ATK · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
+            <div class="istat">+${w.atk} Combat · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
           </div>
           <span class="icost" style="color:var(--muted);font-size:11px">${tradeIn > 0 ? `Trade-in: ${tradeIn}g` : '—'}</span>
         </div>`;
@@ -1101,7 +1105,7 @@ function renderMItems() {
           <div class="iico">${w.icon}</div>
           <div class="iinf">
             <div class="inm">${w.name}${tag}</div>
-            <div class="istat">+${w.atk} ATK · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
+            <div class="istat">+${w.atk} Combat · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
           </div>
           ${priceEl}
           <button class="btn btn-gold ibtn" ${afford ? '' : 'disabled'} onclick="buyItem('w','${w.id}')">${netCost < 0 ? 'Trade' : 'Buy'}</button>
