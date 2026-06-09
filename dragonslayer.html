@@ -917,6 +917,7 @@ function restInn() {
   if (G.gold < cost) return;
   G.gold -= cost;
   G.hp = G.maxHp;
+  G.day++;
   addLog(`🏨 Rested at the inn — fully healed. (−${cost}g)`, 'lok');
   closeRestModal();
   syncKingdom();
@@ -925,6 +926,7 @@ function restInn() {
 
 function restCountryside() {
   closeRestModal();
+  G.day++;
   const heal = Math.min(Math.floor(G.maxHp / 2), G.maxHp - G.hp);
   G.hp += heal;
   if (Math.random() < 0.40) {
