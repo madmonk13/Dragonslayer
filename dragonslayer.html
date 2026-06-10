@@ -472,7 +472,7 @@ body {
     <div class="combatant">
       <div class="cinf">
         <div class="cnm"  id="c-enm">Goblin</div>
-        <div class="cstat" id="c-est">ATK 4 · DEF 1 · 2 dice</div>
+        <div class="cstat" id="c-est">2d6</div>
         <div class="chpr">
           <div class="bwrap" style="flex:1"><div class="bfill ehp" id="bar-ehp" style="width:100%"></div></div>
           <div class="chpn" id="c-ehp">20/20</div>
@@ -1295,7 +1295,8 @@ function beginCombat(mData, isBoss) {
     ? `<img src="${mData.img}" alt="${mData.name}">`
     : mData.icon;
   eid('c-enm').textContent  = mData.name;
-  eid('c-est').textContent  = `${nDice(mData.atk)}d6 · DEF ${mData.def}`;
+  const eArmor = Math.floor(mData.def / 6);
+  eid('c-est').textContent  = eArmor > 0 ? `${nDice(mData.atk)}d6 · ${eArmor} armor` : `${nDice(mData.atk)}d6`;
   // reset ui
   const _stamDice = Math.floor(CB.stamina / 6);
   const _maxDice  = Math.min(nDice(pCombat()), _stamDice);
