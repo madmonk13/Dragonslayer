@@ -390,7 +390,7 @@ body {
       <strong>⚔️ Combat</strong> — more power means more dice to attack and defend with.<br>
       <strong>❤️ Health</strong> — increases your maximum HP.<br>
       <strong>⚡ Stamina</strong> — increases your stamina pool, keeping more dice available longer.<br>
-      <strong>💚 Resilience</strong> — restores more stamina per turn and increases healing from potions and rest.
+      <strong>❤️‍🩹 Resilience</strong> — restores more stamina per turn and increases healing from potions and rest.
     </p>
   </div>
 
@@ -426,7 +426,7 @@ body {
       <div style="display:flex;flex-direction:column;gap:5px">
         <span>⚔️ <span id="p-cbt" style="color:var(--text)">6, 1 die</span></span>
         <span>⚡ <span id="p-stam" style="color:var(--text)">24 max</span></span>
-        <span>💚 <span id="p-res" style="color:var(--text)">6 resilience</span></span>
+        <span>❤️‍🩹 <span id="p-res" style="color:var(--text)">+6</span></span>
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;font-size: 13px;color:var(--muted);margin-bottom:3px">
@@ -724,11 +724,11 @@ const MONSTERS = {
 const DRAGON = { name:"Pyraxis the Dragon", icon:'🐉', img:'sprites/dragon.png', hp:120, atk:30, def:12, xp:0, glo:0, ghi:0 };
 
 const WEAPONS = [
-  { id:'dagger',    name:'Rusty Dagger',    icon:'🗡️', atk:0,  cost:0   },
-  { id:'sword',     name:'Short Sword',     icon:'⚔️', atk:6,  cost:66  },
-  { id:'axe',       name:'Battle Axe',      icon:'🪓', atk:12, cost:144 },
-  { id:'hammer',    name:'War Hammer',      icon:'🔨', atk:18, cost:294 },
-  { id:'enchanted', name:'Enchanted Blade', icon:'✨', atk:24, cost:564 },
+  { id:'dagger',    name:'Rusty Dagger',    icon:'🗡️', atk:0, cost:0   },
+  { id:'sword',     name:'Short Sword',     icon:'⚔️', atk:1, cost:66  },
+  { id:'axe',       name:'Battle Axe',      icon:'🪓', atk:2, cost:144 },
+  { id:'hammer',    name:'War Hammer',      icon:'🔨', atk:4, cost:294 },
+  { id:'enchanted', name:'Enchanted Blade', icon:'✨', atk:8, cost:564 },
 ];
 const ARMORS = [
   { id:'clothes', name:'Peasant Clothes', icon:'👕', def:0,  cost:0   },
@@ -820,8 +820,9 @@ function initState() {
 const d6   = () => Math.floor(Math.random() * 6) + 1;
 const rand = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
 
-function pCombat() { return G.baseCombat + G.weapon.atk; }
-function pDef()    { return G.armor.def; }  // flat block from armor only
+function pCombat()      { return G.baseCombat; }           // dice determined by combat stat only
+function pWeaponBonus() { return G.weapon.atk; }           // flat damage added after rolling
+function pDef()         { return G.armor.def; }            // flat block from armor only
 
 // Number of d6 dice — every 6 ATK = 1 die (ATK is always a multiple of 6)
 function nDice(atk) { return Math.max(1, Math.floor(atk / 6)); }
@@ -840,11 +841,12 @@ function calcEnemyDmg(diceArr)  { return enemyDetail(diceArr).dmg; }
 
 // Detailed versions — return all intermediate values for breakdown display
 function playerDetail(diceArr, eDefBlock = 0) {
-  const raw       = diceArr.reduce((a,b) => a+b, 0);
-  const flatBlock = Math.floor(CB.m.def / 6);  // enemy flat armor
-  const block     = flatBlock + eDefBlock;       // total block (armor + dice)
-  const dmg       = Math.max(1, raw - block);
-  return { dmg, raw, flatBlock, eDefBlock, block };
+  const raw         = diceArr.reduce((a,b) => a+b, 0);
+  const weaponBonus = pWeaponBonus();
+  const flatBlock   = Math.floor(CB.m.def / 6);  // enemy flat armor
+  const block       = flatBlock + eDefBlock;       // total block (armor + dice)
+  const dmg         = Math.max(1, raw + weaponBonus - block);
+  return { dmg, raw, weaponBonus, flatBlock, eDefBlock, block };
 }
 // Enemy dice split — decides how many dice to allocate to defense vs attack.
 // Currently uses HP-ratio-weighted randomness; future enhancement: weight by
@@ -906,12 +908,11 @@ function syncKingdom() {
   eid('p-gold').textContent = G.gold;
   eid('p-hp').textContent   = `${G.hp}/${G.maxHp}`;
   eid('bar-hp').style.width = pct(G.hp, G.maxHp);
-  const cbtVal  = pCombat();
-  const cbtDice = nDice(cbtVal);
-  eid('p-cbt').textContent = `${cbtVal}, ${cbtDice} ${cbtDice === 1 ? 'die' : 'dice'}`;
+  const cbtDice = nDice(G.baseCombat);
+  eid('p-cbt').textContent = `${G.baseCombat}, ${cbtDice} ${cbtDice === 1 ? 'die' : 'dice'}`;
   eid('p-arm').textContent  = G.armor.name;
   eid('p-stam').textContent = `${G.maxStam} max`;
-  eid('p-res').textContent  = `${G.resilience} resilience`;
+  eid('p-res').textContent  = `+${G.resilience}`;
   eid('p-wpn').textContent  = G.weapon.name;
   eid('p-pot').textContent  = `${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
   const cheapest = Math.min(...['combat','hp','stam','resilience'].map(s => trainCost(s)));
@@ -1135,7 +1136,7 @@ function renderMItems() {
           <div class="iico">${w.icon}</div>
           <div class="iinf">
             <div class="inm">${w.name} <span class="badge">✓ Current</span></div>
-            <div class="istat">+${w.atk} Combat · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
+            <div class="istat">${w.atk > 0 ? `+${w.atk} flat damage` : 'No damage bonus'}</div>
           </div>
           <span class="icost" style="color:var(--muted);font-size: 13px">${tradeIn > 0 ? `Trade-in: ${tradeIn}g` : '—'}</span>
         </div>`;
@@ -1149,7 +1150,7 @@ function renderMItems() {
           <div class="iico">${w.icon}</div>
           <div class="iinf">
             <div class="inm">${w.name}${tag}</div>
-            <div class="istat">+${w.atk} Combat · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
+            <div class="istat">${w.atk > 0 ? `+${w.atk} flat damage` : 'No damage bonus'}</div>
           </div>
           ${priceEl}
           <button class="btn btn-gold ibtn" ${afford ? '' : 'disabled'} onclick="buyItem('w','${w.id}')">${netCost < 0 ? 'Trade' : 'Buy'}</button>
@@ -1490,14 +1491,15 @@ function _buildCombatGrid(pDice, blockDice, eDice, eDefDice, defeated) {
     : `<span style="font-size: 13px;color:var(--muted)">—</span>`;
   const edLbl  = flatBlk > 0 ? `🛡️ Armor +${flatBlk} block` : '';
 
-  // flat-damage modifiers only (weapon ATK adds dice, not flat damage → omit)
   const armorFlatBlk = Math.floor(G.armor.def / 6);
-  const pdLbl = armorFlatBlk > 0 ? `🛡️ Armor +${armorFlatBlk} block` : '';
+  const pdLbl  = armorFlatBlk > 0 ? `🛡️ Armor +${armorFlatBlk} block` : '';
+  const wpnLbl = pWeaponBonus() > 0 ? `🗡️ +${pWeaponBonus()} weapon` : '';
 
   eid('dice-zone').innerHTML = `<div class="cb-grid">
     <div class="cb-box" id="cb-pa">
       <div class="cb-hd">⚔️ Your Attack</div>
       <div class="cb-pool">${paPool}</div>
+      ${wpnLbl ? `<div class="cb-lbl">${wpnLbl}</div>` : ''}
     </div>
     <div class="cb-box" id="cb-ea">
       <div class="cb-hd">⚔️ Enemy Attack</div>
@@ -1538,9 +1540,7 @@ function _landCombatGrid(pDice, pd, blockDice, eDice, eDefDice, ed, eTaken, defe
     // summaries
     const ps = eid('cb-ps'), es = eid('cb-es');
     if (ps) {
-      ps.textContent = pd.block > 0
-        ? `${pd.raw} − ${pd.block} = ${pd.dmg} dealt`
-        : `${pd.dmg} dealt`;
+      ps.textContent = `${pd.dmg} damage dealt`;
       ps.style.opacity = '';
       ps.className = 'cb-sum' + (pd.dmg > 0 ? ' p-win' : '');
     }
@@ -1551,10 +1551,7 @@ function _landCombatGrid(pDice, pd, blockDice, eDice, eDefDice, ed, eTaken, defe
         es.textContent = '💀 Enemy Defeated';
         es.className = 'cb-sum p-win';
       } else {
-        const totalBlk = (ed?.defBlock ?? 0) + (ed?.diceBlock ?? 0);
-        es.textContent = totalBlk > 0
-          ? `${ed.raw} − ${totalBlk} = ${eTaken} taken`
-          : `${eTaken} taken`;
+        es.textContent = eTaken > 0 ? `${eTaken} damage taken` : 'Blocked!';
         es.style.opacity = '';
         es.className = 'cb-sum' + (eTaken > 0 ? ' e-win' : '');
       }
@@ -1768,9 +1765,7 @@ function showDefendResult(eDice, ed, defDice, taken) {
         ps.style.opacity='';
       }
       if (es) {
-        es.textContent = ed.block > 0
-          ? `${ed.raw} − ${ed.block} = ${taken} taken`
-          : `${taken} taken`;
+        es.textContent = taken > 0 ? `${taken} damage taken` : 'Blocked!';
         es.style.opacity='';
         es.className = 'cb-sum' + (taken > 0 ? ' e-win' : '');
       }
@@ -2029,7 +2024,7 @@ function gotoTrain() { syncTrain(); show('s-train'); }
 
 function syncTrain() {
   eid('tr-xp').textContent = `⭐ ${G.xp} XP`;
-  const cbt      = pCombat();
+  const cbt      = G.baseCombat;
   const cbtDice  = nDice(cbt);
   const stamDice = Math.floor(G.maxStam / 6);
   const stats = [
@@ -2055,12 +2050,11 @@ function syncTrain() {
       upgrade: [`Upgrade: +6 Max Stamina`],
     },
     {
-      key:'resilience', icon:'💚', label:'Resilience',
+      key:'resilience', icon:'❤️‍🩹', label:'Resilience',
       benefits: [
-        `+${G.resilience} stamina recovery/turn`,
-        `+${G.resilience} healing (potions & rest)`,
+        `+${G.resilience} Recovery`,
       ],
-      upgrade: [`Upgrade: +6 Stamina Recovery/Turn,`, `+6 Healing (Potions & Rest)`],
+      upgrade: [`Upgrade: +6 Recovery`],
     },
   ];
   eid('tr-content').innerHTML = stats.map(s => {
