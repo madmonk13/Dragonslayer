@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Dragonslayer</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <style>
 @font-face {
   font-family: 'UnifrakturMaguntia';
@@ -57,7 +59,7 @@ body {
 
 /* ── CARDS ── */
 .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
-.clabel { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px; color: var(--muted); margin-bottom: 8px; }
+.clabel { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px; color: var(--muted); margin-bottom: 8px; }
 
 /* ── BUTTONS ── */
 .btn {
@@ -94,7 +96,7 @@ body {
 .pills { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .pill { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs); padding: 9px 12px; display: flex; align-items: center; gap: 8px; }
 .pill .ico { font-size: 17px; line-height: 1; }
-.pill .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+.pill .lbl { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
 .pill .val { font-size: 16px; font-weight: 700; margin-top: 1px; }
 .vgold { color: var(--gold); }
 .vhp   { color: var(--hp); }
@@ -105,18 +107,18 @@ body {
   display: inline-flex; align-items: center; justify-content: center;
   width: 19px; height: 19px; border-radius: 5px;
   border: 2px solid rgba(255,255,255,.65);
-  font-size: 12px; font-weight: 800; flex-shrink: 0;
+  font-size: 13px; font-weight: 800; flex-shrink: 0;
 }
 
 /* ── COMBAT STAT ROW ── */
-.stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 3px; }
+.stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 13.5px; color: var(--muted); margin-bottom: 3px; }
 .stat-row span:first-child { font-weight: 600; }
 
 /* ── LOG ── */
 /* ── COMBAT BREAKDOWN ── */
 .bdwrap { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
 .bds    { display: flex; flex-direction: column; gap: 7px; }
-.bdhd   { font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+.bdhd   { font-size: 13px; font-weight: 700; text-transform: uppercase;
           letter-spacing: 1px; color: var(--muted); margin-bottom: 2px; }
 .bdr    { display: flex; justify-content: space-between; align-items: center;
           font-size: 13.5px; gap: 6px; }
@@ -133,7 +135,7 @@ body {
 
 /* ── LOGS ── */
 .logscroll { overflow-y: auto; flex: 1; min-height: 0; }
-.logi { display: block; width: 100%; font-size: 13px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); line-height: 1.4; }
+.logi { display: block; width: 100%; font-size: 14px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); line-height: 1.4; }
 .logi:last-child { border-bottom: none; }
 .lhi  { color: var(--text); }
 .lok  { color: var(--hp); }
@@ -143,19 +145,19 @@ body {
 /* ── TITLE SCREEN ── */
 #s-title {
   align-items: center;
-  padding-top: max(32px, 8vh);
+  padding-top: max(20px, 5vh);
   background: radial-gradient(ellipse at 50% 30%, #2a1535 0%, var(--bg) 70%);
 }
 #s-title-inner {
   display: flex; flex-direction: column; align-items: center;
-  gap: 22px; text-align: center; width: 100%;
+  gap: 14px; text-align: center; width: 100%;
 }
-.tsub    { color: var(--muted); font-size: 15px; max-width: 268px; line-height: 1.6; }
+.tsub    { color: var(--muted); font-size: 15px; max-width: 268px; line-height: 1.5; margin-top: -6px; }
 
 /* ── KINGDOM ── */
 .knm  { font-size: 21px; font-weight: 800; margin-bottom: 3px; }
-.kdsc { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-.kinf { font-size: 12.5px; color: var(--muted); }
+.kdsc { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+.kinf { font-size: 13.5px; color: var(--muted); }
 .kinf strong { color: var(--text); }
 
 /* ── COMBAT ── */
@@ -164,12 +166,12 @@ body {
 .cico img { width: 64px; height: 64px; image-rendering: pixelated; image-rendering: crisp-edges; }
 .cinf  { flex: 1; }
 .cnm   { font-size: 17px; font-weight: 700; }
-.cstat { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.cstat { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .chpr  { display: flex; align-items: center; gap: 7px; margin-top: 6px; }
-.chpn  { font-size: 12px; color: var(--muted); min-width: 54px; text-align: right; }
+.chpn  { font-size: 13px; color: var(--muted); min-width: 54px; text-align: right; }
 
 /* Stamina bar */
-.stam-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.stam-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
 
 /* Dice zone */
 #dice-zone {
@@ -185,16 +187,17 @@ body {
   overflow: visible;
 }
 .cb-box.win  { background: rgba(72,184,122,.12); border-color: rgba(72,184,122,.35); }
+.cb-box.hit  { background: rgba(220,60,60,.12);  border-color: rgba(220,60,60,.40); }
 .cb-box.lose { opacity: .4; }
-.cb-hd { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+.cb-hd { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase;
          letter-spacing: .05em; align-self: flex-start; }
 .cb-pool { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
            min-height: 32px; align-items: center; perspective: 250px;
            padding: 10px 6px; }
-.cb-lbl { font-size: 10.5px; color: var(--muted); text-align: center; }
+.cb-lbl { font-size: 12px; color: var(--muted); text-align: center; }
 .cb-sum {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs);
-  padding: 4px 6px; font-size: 11px; font-weight: 700; color: var(--muted);
+  padding: 4px 6px; font-size: 13px; font-weight: 700; color: var(--muted);
   text-align: center; min-height: 24px; display: flex; align-items: center; justify-content: center;
   transition: color .25s;
 }
@@ -233,7 +236,7 @@ body {
 /* ── MARKET ── */
 .tabs { display: flex; gap: 5px; }
 .tab {
-  flex: 1; padding: 7px 4px; font-size: 12.5px; font-weight: 600; text-align: center;
+  flex: 1; padding: 7px 4px; font-size: 13.5px; font-weight: 600; text-align: center;
   background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
   cursor: pointer; color: var(--muted); transition: all .13s;
   -webkit-tap-highlight-color: transparent;
@@ -245,14 +248,14 @@ body {
 .iico  { font-size: 24px; width: 32px; text-align: center; }
 .iinf  { flex: 1; }
 .inm   { font-size: 14px; font-weight: 600; }
-.istat { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.istat { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .icost { font-size: 14px; font-weight: 700; }
-.ibtn  { padding: 6px 12px; font-size: 13px; width: auto; min-width: 56px; }
-.badge { font-size: 11px; color: var(--hp); font-weight: 600; margin-left: 5px; }
-.sale  { font-size: 11px; color: var(--gold); font-weight: 600; margin-left: 4px; }
-.orig  { font-size: 11px; color: var(--muted); text-decoration: line-through; margin-right: 3px; }
+.ibtn  { padding: 6px 12px; font-size: 14px; width: auto; min-width: 56px; }
+.badge { font-size: 13px; color: var(--hp); font-weight: 600; margin-left: 5px; }
+.sale  { font-size: 13px; color: var(--gold); font-weight: 600; margin-left: 4px; }
+.orig  { font-size: 13px; color: var(--muted); text-decoration: line-through; margin-right: 3px; }
 
-.kspec { padding: 9px 13px; border-radius: var(--rs); font-size: 13px; color: var(--gold); background: rgba(240,192,64,.1); border: 1px solid rgba(240,192,64,.25); }
+.kspec { padding: 9px 13px; border-radius: var(--rs); font-size: 14px; color: var(--gold); background: rgba(240,192,64,.1); border: 1px solid rgba(240,192,64,.25); }
 
 /* ── TRAVEL ── */
 .kopt {
@@ -268,13 +271,13 @@ body {
 .kico { font-size: 28px; }
 .kinf2 { flex: 1; }
 .knm2  { font-size: 15px; font-weight: 700; color: var(--text); }
-.kdsc2 { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.kwarn { font-size: 12px; color: var(--accent); margin-top: 3px; }
+.kdsc2 { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.kwarn { font-size: 13px; color: var(--accent); margin-top: 3px; }
 .tcost { text-align: right; }
 .tdays { font-size: 17px; font-weight: 800; color: var(--accent); }
-.tlbl  { font-size: 11px; color: var(--muted); }
+.tlbl  { font-size: 13px; color: var(--muted); }
 
-.alert { padding: 10px 13px; border-radius: var(--rs); font-size: 13px; line-height: 1.5; color: var(--muted); }
+.alert { padding: 10px 13px; border-radius: var(--rs); font-size: 14px; line-height: 1.5; color: var(--muted); }
 .alert-red { background: rgba(232,80,58,.1); border: 1px solid rgba(232,80,58,.28); }
 
 /* ── MODALS ── */
@@ -282,11 +285,11 @@ body {
 .overlay.on { display: flex; }
 .modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 380px; }
 .modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
-.modal p  { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+.modal p  { font-size: 13.5px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
 .perk { padding: 12px; border: 2px solid var(--border); border-radius: var(--rs); margin-bottom: 8px; cursor: pointer; transition: border-color .13s, background .13s; -webkit-tap-highlight-color: transparent; }
 .perk:hover { border-color: var(--mp); background: var(--surface); }
 .pnm  { font-size: 13.5px; font-weight: 700; }
-.pdsc { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.pdsc { font-size: 13px; color: var(--muted); margin-top: 3px; }
 
 /* ── END SCREENS ── */
 #s-lose, #s-win { align-items: center; justify-content: center; text-align: center; gap: 18px; }
@@ -299,7 +302,7 @@ body {
 .backrow { display: flex; align-items: center; gap: 10px; }
 .backrow h2 { font-size: 18px; font-weight: 700; }
 .backrow .sp { flex: 1; }
-.backbtn { padding: 8px 14px; font-size: 12.5px; width: auto; }
+.backbtn { padding: 8px 14px; font-size: 13.5px; width: auto; }
 
 /* ── TRAIN BUTTON PULSE ── */
 @keyframes pulse-ready {
@@ -334,8 +337,11 @@ body {
   <div id="s-title-inner">
     <img src="logo.png" alt="Dragonslayer" style="width:100%;max-width:320px;height:auto">
     <div class="tsub">Your daughter Lyra has been chosen in the village lottery to be sacrificed to the dragon Pyraxis. You have 30 days to grow strong enough to defeat him and save your daughter.</div>
-    <button class="btn btn-red" style="max-width:260px;padding:16px;font-size:17px" onclick="newGame()">⚔️ Begin Quest</button>
-    <button class="btn btn-gray" style="max-width:260px" onclick="show('s-tutorial')">📖 How to Fight</button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:260px;margin-top:4px">
+      <button class="btn btn-gold" id="btn-continue-save" style="width:100%;padding:16px;font-size:17px;display:none" onclick="continueGame()">▶ Continue</button>
+      <button class="btn btn-red"  id="btn-new-game"      style="width:100%;padding:16px;font-size:17px" onclick="newGame()">⚔️ Begin Quest</button>
+      <button class="btn btn-gray" style="width:100%" onclick="show('s-tutorial')">📖 How to Fight</button>
+    </div>
   </div>
 </div>
 
@@ -349,50 +355,42 @@ body {
 
   <div class="card">
     <div class="clabel">The Basics</div>
-    <p style="font-size:13px;line-height:1.6;color:var(--text)">
-      Combat is driven by <strong>d6 dice</strong>. Every 6 points of Combat stat gives you one die.
-      You choose how many dice to roll on your attack — unused dice automatically roll to <strong>block enemy damage</strong>.
-      Splitting your dice between attack and defense is the core decision every turn.
+    <p style="font-size: 14px;line-height:1.6;color:var(--text)">
+      Combat is driven by <strong>d6 dice</strong>. Your Combat stat determines how many dice you have — more power means more dice. Each turn you choose how many dice to <strong>attack</strong> with. Any dice you don't use automatically roll to <strong>block incoming damage</strong>. Every attack costs stamina, so spending it all leaves you with nothing to defend.
     </p>
   </div>
 
   <div class="card">
-    <div class="clabel">Stamina &amp; Dice</div>
-    <p style="font-size:13px;line-height:1.6;color:var(--text)">
-      Your <strong>stamina</strong> limits how many dice you can use. Available dice =
-      <em>min(Combat dice, floor(Stamina ÷ 6))</em>. At full stamina you can use all your dice.
-      Drain it on heavy attacks and both your offense and defense suffer.
-    </p>
-    <div class="alert" style="font-size:12px;margin-top:8px">
-      🎲×1 ⚔️ is a <strong>light attack</strong> — it <em>restores</em> stamina (+6) and costs nothing.<br>
-      🎲×2+ ⚔️ are <strong>heavy attacks</strong> — each die costs 6 stamina.
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="clabel">Blocking</div>
-    <p style="font-size:13px;line-height:1.6;color:var(--text)">
-      After your attack, the enemy hits back. Any dice you didn't use for attacking are rolled —
-      their <strong>sum reduces incoming damage</strong>. Your armor adds a flat block on top.
-      Example: you have 3 dice, attack with 2 → the 3rd die rolls (say a 4) → enemy damage reduced by 4, then by your armor.
+    <div class="clabel">Stamina</div>
+    <p style="font-size: 14px;line-height:1.6;color:var(--text)">
+      Stamina determines how many of your dice are usable each turn — one die per 6 stamina. Each die you attack with costs stamina. At the end of every turn your <strong>Resilience</strong> restores some stamina automatically. Let it drain too far and you'll have fewer dice for both attacking and blocking.
     </p>
   </div>
 
   <div class="card">
-    <div class="clabel">Defend &amp; Potion</div>
-    <p style="font-size:13px;line-height:1.6;color:var(--text)">
-      <strong>🛡️ Defend</strong> — skip your attack, restore 12 stamina, and absorb up to 12 damage from the enemy's hit.
-      Use this when stamina is low to recover your dice pool.<br><br>
-      <strong>🧪 Potion</strong> — drink a health potion mid-combat. The enemy gets a free attack while you drink.
+    <div class="clabel">Defend &amp; Flee</div>
+    <p style="font-size: 14px;line-height:1.6;color:var(--text)">
+      <strong>🛡️ Defend</strong> — skip your attack and commit all your dice to blocking the enemy's strike. The best option when you need to take as little damage as possible. Stamina still restores at end of turn.<br><br>
+      <strong>💨 Flee</strong> — your dice defend one final enemy attack. If you take no damage, you escape. Otherwise you stay and keep fighting.<br><br>
+      <strong>🧪 Potion</strong> — restores health mid-combat. The enemy gets a free attack while you drink.
     </p>
   </div>
 
   <div class="card">
-    <div class="clabel">Damage Formula</div>
-    <p style="font-size:13px;line-height:1.6;color:var(--text)">
-      <strong>Your damage:</strong> dice sum − enemy DEF block. Minimum 1.<br>
-      <strong>Enemy damage:</strong> dice sum − your block dice roll − your armor block. Minimum 0.<br><br>
-      Enemies also have DEF — high-DEF enemies eat into your dice rolls. Upgrade your Combat stat or buy better weapons to roll more dice and overpower their defence.
+    <div class="clabel">Armor &amp; Enemy Defense</div>
+    <p style="font-size: 14px;line-height:1.6;color:var(--text)">
+      Your <strong>armor</strong> reduces all incoming damage by a flat amount — it stacks on top of your blocking dice. Enemies can also have armor that reduces your damage, and smarter enemies will split their dice between attacking and defending when wounded. Better weapons and a higher Combat stat let you roll more dice and overwhelm their defenses.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Stats &amp; Training</div>
+    <p style="font-size: 14px;line-height:1.6;color:var(--text)">
+      Spend XP at the Training Hall to upgrade your four stats:<br><br>
+      <strong>⚔️ Combat</strong> — more power means more dice to attack and defend with.<br>
+      <strong>❤️ Health</strong> — increases your maximum HP.<br>
+      <strong>⚡ Stamina</strong> — increases your stamina pool, keeping more dice available longer.<br>
+      <strong>💚 Resilience</strong> — restores more stamina per turn and increases healing from potions and rest.
     </p>
   </div>
 
@@ -419,7 +417,7 @@ body {
 
   <div class="card">
     <div class="clabel">Hero</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;font-size:12.5px;color:var(--muted)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;font-size: 13.5px;color:var(--muted)">
       <div style="display:flex;flex-direction:column;gap:5px">
         <span>🗡️ <span id="p-wpn" style="color:var(--text)">Rusty Dagger</span></span>
         <span>🛡️ <span id="p-arm" style="color:var(--text)">Peasant Clothes</span></span>
@@ -431,7 +429,7 @@ body {
         <span>💚 <span id="p-res" style="color:var(--text)">6 resilience</span></span>
       </div>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px">
+    <div style="display:flex;justify-content:space-between;font-size: 13px;color:var(--muted);margin-bottom:3px">
       <span>XP</span><span id="p-xp">0</span>
     </div>
     <div class="bwrap"><div class="bfill xp" id="bar-xp" style="width:0%"></div></div>
@@ -498,7 +496,7 @@ body {
   <div class="card" style="padding:10px 13px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
       <span class="stat-row" style="margin:0;gap:5px"><span style="font-size:14px">❤️</span> <span>Health</span></span>
-      <span style="font-size:11px;color:var(--muted);display:flex;gap:10px">
+      <span style="font-size: 13px;color:var(--muted);display:flex;gap:10px">
         <span id="c-php">40/40</span>
         <span id="c-pots">🧪 2</span>
       </span>
@@ -506,7 +504,7 @@ body {
     <div class="bwrap"><div class="bfill hp" id="bar-php" style="width:100%"></div></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:2px">
       <span class="stat-row" style="margin:0;gap:5px"><span style="font-size:14px">⚡</span> <span>Stamina</span></span>
-      <span style="font-size:11px;color:var(--muted)" id="c-st-txt">24 / 24</span>
+      <span style="font-size: 13px;color:var(--muted)" id="c-st-txt">24 / 24</span>
     </div>
     <div class="bwrap" style="margin-top:0"><div class="bfill st-hi" id="bar-st" style="width:100%"></div></div>
   </div>
@@ -548,7 +546,7 @@ body {
 
   <div class="card" style="padding:11px 14px">
     <div class="clabel">Equipped</div>
-    <div style="font-size:12px;display:flex;gap:13px;flex-wrap:wrap;color:var(--muted)">
+    <div style="font-size: 13px;display:flex;gap:13px;flex-wrap:wrap;color:var(--muted)">
       <span>⚔️ <span id="m-ewpn" style="color:var(--text)">Rusty Dagger</span></span>
       <span>🛡️ <span id="m-earm" style="color:var(--text)">Peasant Clothes</span></span>
       <span>🧪 <span id="m-epot" style="color:var(--text)">2 potions</span></span>
@@ -564,7 +562,7 @@ body {
     <button class="btn btn-gray backbtn" onclick="gotoKingdom()">← Back</button>
     <h2>🗺️ Travel</h2>
     <div class="sp"></div>
-    <span style="font-size:12px;color:var(--accent)" id="t-left">30 days left</span>
+    <span style="font-size: 13px;color:var(--accent)" id="t-left">30 days left</span>
   </div>
 
   <div class="alert alert-red">
@@ -607,7 +605,7 @@ body {
     <span style="color:var(--mp);font-weight:700;font-size:13.5px" id="tr-xp">⭐ 0 XP</span>
   </div>
 
-  <div class="alert alert-red" style="font-size:11.5px">
+  <div class="alert alert-red" style="font-size: 13px">
     Each upgrade costs double the last for that stat. Costs are independent per stat.
   </div>
 
@@ -620,23 +618,23 @@ body {
   <div class="modal" style="padding:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <h2 style="margin:0">😴 Rest</h2>
-      <button class="btn btn-gray" style="padding:4px 12px;font-size:13px;flex-shrink:0;width:auto" onclick="closeRestModal()">✕</button>
+      <button class="btn btn-gray" style="padding:4px 12px;font-size: 14px;flex-shrink:0;width:auto" onclick="closeRestModal()">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <div class="cb-box" style="align-items:flex-start;gap:6px">
         <div style="font-size:15px;font-weight:700">🏨 Inn</div>
-        <div style="font-size:12px;color:var(--muted)">Room &amp; meal included. Fully restores HP.</div>
+        <div style="font-size: 13px;color:var(--muted)">Room &amp; meal included. Fully restores HP.</div>
         <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:4px">
-          <span style="font-size:13px;color:var(--gold);font-weight:700" id="rest-inn-cost">—</span>
-          <button class="btn btn-green" id="btn-rest-inn" style="width:auto;padding:6px 14px;font-size:13px" onclick="restInn()">Rest at Inn</button>
+          <span style="font-size: 14px;color:var(--gold);font-weight:700" id="rest-inn-cost">—</span>
+          <button class="btn btn-green" id="btn-rest-inn" style="width:auto;padding:6px 14px;font-size: 14px" onclick="restInn()">Rest at Inn</button>
         </div>
       </div>
       <div class="cb-box" style="align-items:flex-start;gap:6px">
         <div style="font-size:15px;font-weight:700">🌿 Countryside</div>
-        <div style="font-size:12px;color:var(--muted)">Hunt for a meal. Restores half HP. Risk of encounter.</div>
+        <div style="font-size: 13px;color:var(--muted)">Hunt for a meal. Restores half HP. Risk of encounter.</div>
         <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:4px">
-          <span style="font-size:12px;color:var(--muted)">Free</span>
-          <button class="btn btn-gray" style="width:auto;padding:6px 14px;font-size:13px" onclick="restCountryside()">Rest Outdoors</button>
+          <span style="font-size: 13px;color:var(--muted)">Free</span>
+          <button class="btn btn-gray" style="width:auto;padding:6px 14px;font-size: 14px" onclick="restCountryside()">Rest Outdoors</button>
         </div>
       </div>
     </div>
@@ -648,7 +646,7 @@ body {
   <div class="modal" style="max-height:80vh;display:flex;flex-direction:column;padding:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <h2 style="margin:0">📖 Journal</h2>
-      <button class="btn btn-gray" style="padding:4px 12px;font-size:13px;flex-shrink:0;width:auto" onclick="closeJournal()">✕</button>
+      <button class="btn btn-gray" style="padding:4px 12px;font-size: 14px;flex-shrink:0;width:auto" onclick="closeJournal()">✕</button>
     </div>
     <div class="logscroll" id="k-log" style="flex:1;min-height:0"></div>
   </div>
@@ -756,6 +754,49 @@ let G  = {};   // global game state
 let CB = {};   // combat state
 let mTab_cur = 'w';
 
+// ═══════════════════════════════════════════════════
+//  SAVE / LOAD  (localStorage — works in Capacitor iOS WebView)
+// ═══════════════════════════════════════════════════
+
+const SAVE_KEY = 'dragonslayer_v1';
+
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } catch(e) {}
+}
+
+function deleteSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    // patch missing fields added in later versions
+    if (d.resilience          === undefined) d.resilience = 6;
+    if (!d.trainCount)                       d.trainCount = {};
+    if (d.trainCount.resilience === undefined) d.trainCount.resilience = 0;
+    return d;
+  } catch(e) { return null; }
+}
+
+function syncTitle() {
+  const hasSave = !!localStorage.getItem(SAVE_KEY);
+  const contBtn = eid('btn-continue-save');
+  const newBtn  = eid('btn-new-game');
+  if (contBtn) contBtn.style.display = hasSave ? '' : 'none';
+  if (newBtn)  newBtn.textContent    = hasSave ? '🗡️ New Game' : '⚔️ Begin Quest';
+}
+
+function continueGame() {
+  const saved = loadSave();
+  if (!saved) { newGame(); return; }
+  G = saved;
+  addLog('📖 Game resumed.', 'lhi');
+  gotoKingdom();
+}
+
 function initState() {
   G = {
     day: 1, gold: 96,
@@ -851,7 +892,7 @@ function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   eid(id).classList.add('active');
 }
-function showTitle()   { show('s-title'); }
+function showTitle()   { syncTitle(); show('s-title'); }
 function gotoKingdom() { syncKingdom(); show('s-kingdom'); }
 function gotoMarket()  { mTab_cur = 'w'; syncMarket(); show('s-market'); }
 function gotoTravel()  { syncTravel(); show('s-travel'); }
@@ -888,6 +929,7 @@ function syncKingdom() {
   restBtn.disabled    = G.hp >= G.maxHp;
   restBtn.textContent = '😴 Rest';
   renderLog();
+  saveGame();
 }
 
 // ═══════════════════════════════════════════════════
@@ -895,6 +937,7 @@ function syncKingdom() {
 // ═══════════════════════════════════════════════════
 
 function newGame() {
+  deleteSave();
   initState();
   addLog('📖 Day 1 — Your quest begins. Slay Pyraxis before Day 30!', 'lhi');
   addLog('💡 HINT: Visit the marketplace to purchase a weapon.', 'lhi');
@@ -980,7 +1023,7 @@ function syncTravel() {
     btn.innerHTML = `
       <div class="kico">${k.icon}</div>
       <div class="kinf2">
-        <div class="knm2">${k.name}${isCur ? ' <span style="font-size:10px;color:var(--hp)">▶ Here</span>' : ''}</div>
+        <div class="knm2">${k.name}${isCur ? ' <span style="font-size: 12px;color:var(--hp)">▶ Here</span>' : ''}</div>
         <div class="kdsc2">${k.desc}</div>
         ${tight ? '<div class="kwarn">⚠️ May not return in time!</div>' : ''}
       </div>
@@ -1085,8 +1128,8 @@ function renderMItems() {
       const afford    = netCost <= 0 || G.gold >= netCost;
       const better    = w.atk > G.weapon.atk;
       const worse     = w.atk < G.weapon.atk;
-      const tag       = better ? ' <span style="font-size:10px;color:var(--hp)">↑ upgrade</span>'
-                      : worse  ? ' <span style="font-size:10px;color:var(--muted)">↓ downgrade</span>' : '';
+      const tag       = better ? ' <span style="font-size: 12px;color:var(--hp)">↑ upgrade</span>'
+                      : worse  ? ' <span style="font-size: 12px;color:var(--muted)">↓ downgrade</span>' : '';
       if (owned) {
         html += `<div class="irow">
           <div class="iico">${w.icon}</div>
@@ -1094,7 +1137,7 @@ function renderMItems() {
             <div class="inm">${w.name} <span class="badge">✓ Current</span></div>
             <div class="istat">+${w.atk} Combat · rolls ${nDice(G.baseCombat+w.atk)}d6</div>
           </div>
-          <span class="icost" style="color:var(--muted);font-size:11px">${tradeIn > 0 ? `Trade-in: ${tradeIn}g` : '—'}</span>
+          <span class="icost" style="color:var(--muted);font-size: 13px">${tradeIn > 0 ? `Trade-in: ${tradeIn}g` : '—'}</span>
         </div>`;
       } else {
         const priceEl = netCost < 0
@@ -1123,8 +1166,8 @@ function renderMItems() {
       const afford    = netCost <= 0 || G.gold >= netCost;
       const better    = a.def > G.armor.def;
       const worse     = a.def < G.armor.def;
-      const tag       = better ? ' <span style="font-size:10px;color:var(--hp)">↑ upgrade</span>'
-                      : worse  ? ' <span style="font-size:10px;color:var(--muted)">↓ downgrade</span>' : '';
+      const tag       = better ? ' <span style="font-size: 12px;color:var(--hp)">↑ upgrade</span>'
+                      : worse  ? ' <span style="font-size: 12px;color:var(--muted)">↓ downgrade</span>' : '';
       if (owned) {
         html += `<div class="irow">
           <div class="iico">${a.icon}</div>
@@ -1132,7 +1175,7 @@ function renderMItems() {
             <div class="inm">${a.name} <span class="badge">✓ Current</span></div>
             <div class="istat">blocks ${Math.floor(a.def/6)} dmg per hit</div>
           </div>
-          <span class="icost" style="color:var(--muted);font-size:11px">${tradeIn > 0 ? `Trade-in: ${tradeIn}g` : '—'}</span>
+          <span class="icost" style="color:var(--muted);font-size: 13px">${tradeIn > 0 ? `Trade-in: ${tradeIn}g` : '—'}</span>
         </div>`;
       } else {
         const priceEl = netCost < 0
@@ -1237,6 +1280,7 @@ function buyPotion() {
 // ═══════════════════════════════════════════════════
 
 function beginCombat(mData, isBoss) {
+  saveGame();  // snapshot state before combat — crash/close restores to pre-fight
   CB = {
     m:       mData,
     mHp:     mData.hp,
@@ -1432,17 +1476,17 @@ function _buildCombatGrid(pDice, blockDice, eDice, eDefDice, defeated) {
   // player defense pool (unused dice rolled for block)
   const pdPool = blockDice.length
     ? blockDice.map((_,i) => _make3DDie(`dr-pd-${i}`)).join('')
-    : '<span style="font-size:11px;color:var(--muted)">—</span>';
+    : '<span style="font-size: 13px;color:var(--muted)">—</span>';
   // enemy attack pool
   const eaPool = defeated
-    ? '<span style="font-size:11px;color:var(--muted)">—</span>'
+    ? '<span style="font-size: 13px;color:var(--muted)">—</span>'
     : eDice.map((_,i) => _make3DDie(`dr-ea-${i}`)).join('');
   // enemy defense pool — spinning dice if they split, otherwise flat armor display
   const flatBlk  = Math.floor(CB.m.def / 6);
   const hasEDef  = eDefDice && eDefDice.length > 0;
   const edPool = hasEDef
     ? eDefDice.map((_,i) => _make3DDie(`dr-ed-${i}`)).join('')
-    : `<span style="font-size:11px;color:var(--muted)">—</span>`;
+    : `<span style="font-size: 13px;color:var(--muted)">—</span>`;
   const edLbl  = flatBlk > 0 ? `🛡️ Armor +${flatBlk} block` : '';
 
   // flat-damage modifiers only (weapon ATK adds dice, not flat damage → omit)
@@ -1519,7 +1563,9 @@ function _landCombatGrid(pDice, pd, blockDice, eDice, eDefDice, ed, eTaken, defe
     const pd_ = eid('cb-pd');
     if (pd_ && !defeated) pd_.className = 'cb-box' + (eTaken === 0 && (blockDice.length > 0 || G.armor.def > 0) ? ' win' : '');
     const ea = eid('cb-ea');
-    if (ea) ea.className = 'cb-box' + (defeated ? ' win' : eTaken > 0 ? ' lose' : '');
+    if (ea) ea.className = 'cb-box' + (defeated ? ' win' : eTaken > 0 ? ' hit' : '');
+    const ed_ = eid('cb-ed');
+    if (ed_ && !defeated) ed_.className = 'cb-box' + (pd.eDefBlock > 0 ? ' win' : '');
   }, SETTLE_MS);
 }
 
@@ -1619,15 +1665,15 @@ function showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defea
 function showFleeResult(eDice, ed, fleeDefDice, taken, escaped) {
   const flatBlk = Math.floor(CB.m.def / 6);
   const edDisp  = flatBlk > 0
-    ? `<div style="font-size:18px;line-height:1">🛡️</div><div style="font-size:10px;font-weight:700;color:var(--muted)">${flatBlk} block</div>`
-    : `<span style="font-size:11px;color:var(--muted)">none</span>`;
+    ? `<div style="font-size:18px;line-height:1">🛡️</div><div style="font-size: 12px;font-weight:700;color:var(--muted)">${flatBlk} block</div>`
+    : `<span style="font-size: 13px;color:var(--muted)">none</span>`;
   const pdPool  = fleeDefDice.map((_,i) => _make3DDie(`dr-flpd-${i}`)).join('');
   const armorBlk = Math.floor(G.armor.def / 6);
 
   eid('dice-zone').innerHTML = `<div class="cb-grid">
     <div class="cb-box">
       <div class="cb-hd">💨 Flee</div>
-      <div class="cb-pool" style="min-height:32px"><span style="font-size:11px;color:var(--muted)">—</span></div>
+      <div class="cb-pool" style="min-height:32px"><span style="font-size: 13px;color:var(--muted)">—</span></div>
     </div>
     <div class="cb-box" id="cb-fl-ea">
       <div class="cb-hd">⚔️ Enemy Attack</div>
@@ -1670,7 +1716,7 @@ function showFleeResult(eDice, ed, fleeDefDice, taken, escaped) {
       }
       const ea  = eid('cb-fl-ea');
       const pd_ = eid('cb-fl-pd');
-      if (ea)  ea.className  = 'cb-box' + (taken > 0 ? ' lose' : ' win');
+      if (ea)  ea.className  = 'cb-box' + (taken > 0 ? ' hit' : ' win');
       if (pd_) pd_.className = 'cb-box' + (escaped ? ' win' : '');
     }, SETTLE_MS);
   }, ROLL_MS);
@@ -1679,13 +1725,13 @@ function showFleeResult(eDice, ed, fleeDefDice, taken, escaped) {
 function showDefendResult(eDice, ed, defDice, taken) {
   const flatBlk = Math.floor(CB.m.def / 6);
   const edDisp  = flatBlk > 0
-    ? `<div style="font-size:18px;line-height:1">🛡️</div><div style="font-size:10px;font-weight:700;color:var(--muted)">${flatBlk} block</div>`
-    : `<span style="font-size:11px;color:var(--muted)">none</span>`;
+    ? `<div style="font-size:18px;line-height:1">🛡️</div><div style="font-size: 12px;font-weight:700;color:var(--muted)">${flatBlk} block</div>`
+    : `<span style="font-size: 13px;color:var(--muted)">none</span>`;
 
   eid('dice-zone').innerHTML = `<div class="cb-grid">
     <div class="cb-box">
       <div class="cb-hd">⚔️ Your Attack</div>
-      <div class="cb-pool" style="min-height:32px"><span style="font-size:11px;color:var(--muted)">—</span></div>
+      <div class="cb-pool" style="min-height:32px"><span style="font-size: 13px;color:var(--muted)">—</span></div>
     </div>
     <div class="cb-box" id="cb-def-ea">
       <div class="cb-hd">⚔️ Enemy Attack</div>
@@ -1728,7 +1774,7 @@ function showDefendResult(eDice, ed, defDice, taken) {
         es.className = 'cb-sum' + (taken > 0 ? ' e-win' : '');
       }
       const ea = eid('cb-def-ea');
-      if (ea) ea.className = 'cb-box' + (taken > 0 ? ' lose' : '');
+      if (ea) ea.className = 'cb-box' + (taken > 0 ? ' hit' : '');
       const pd_ = eid('cb-pd-def');
       if (pd_) pd_.className = 'cb-box' + (taken === 0 ? ' win' : '');
     }, SETTLE_MS);
@@ -1906,7 +1952,7 @@ function combatWin() {
 
   const onContinue = CB.afterCombat || gotoKingdom;
   const destRow    = CB.afterCombat
-    ? _bdr('Continuing to', `<span style="color:var(--muted);font-size:12px">${pendingTravel ? pendingTravel.k.name : ''}</span>`)
+    ? _bdr('Continuing to', `<span style="color:var(--muted);font-size: 13px">${pendingTravel ? pendingTravel.k.name : ''}</span>`)
     : '';
   _showCombatEndResult(
     '⚔️', 'var(--hp)', `${CB.m.name} Defeated!`,
@@ -1944,7 +1990,7 @@ function combatLose() {
       '💔', 'var(--accent)', 'Beaten by Bandits',
       `${_bdr('Gold taken',      _pill(`−${lost}g`, 'red'))}
        ${_bdr('HP remaining',    _pill(`${G.hp} / ${G.maxHp}`, 'red'))}
-       ${_bdr('Continuing to',   `<span style="color:var(--muted);font-size:12px">${pendingTravel ? pendingTravel.k.name : ''}</span>`)}`,
+       ${_bdr('Continuing to',   `<span style="color:var(--muted);font-size: 13px">${pendingTravel ? pendingTravel.k.name : ''}</span>`)}`,
       CB.afterCombat || gotoKingdom
     );
     return;
@@ -1961,7 +2007,7 @@ function combatLose() {
     '💔', 'var(--accent)', `Defeated by ${CB.m.name}`,
     `${_bdr('Gold lost',        _pill(`−${lost}g`, 'red'))}
      ${_bdr('HP remaining',     _pill(`${G.hp} / ${G.maxHp}`, 'red'))}
-     ${_bdr('Dragged back to',  `<span style="color:var(--muted);font-size:12px">${G.kingdom.name}</span>`)}`,
+     ${_bdr('Dragged back to',  `<span style="color:var(--muted);font-size: 13px">${G.kingdom.name}</span>`)}`,
     gotoKingdom
   );
 }
@@ -1990,29 +2036,30 @@ function syncTrain() {
       key:'combat', icon:'⚔️', label:'Combat',
       benefits: [
         `${cbt} power · up to ${cbtDice} ${cbtDice===1?'die':'dice'}`,
-        `+6 power, +1 die per upgrade`,
       ],
+      upgrade: [`Upgrade: +6 (1 die)`],
     },
     {
       key:'hp', icon:'❤️', label:'Health',
       benefits: [
         `${G.maxHp} max HP`,
-        `+6 HP per upgrade`,
       ],
+      upgrade: [`Upgrade: +6 HP`],
     },
     {
       key:'stam', icon:'⚡', label:'Stamina',
       benefits: [
         `${G.maxStam} max · ${stamDice} ${stamDice===1?'die':'dice'}`,
-        `+6 stamina, +1 die per upgrade`,
       ],
+      upgrade: [`Upgrade: +6 Max Stamina`],
     },
     {
       key:'resilience', icon:'💚', label:'Resilience',
       benefits: [
-        `+${G.resilience} stamina per turn`,
+        `+${G.resilience} stamina recovery/turn`,
         `+${G.resilience} healing (potions & rest)`,
       ],
+      upgrade: [`Upgrade: +6 Stamina Recovery/Turn,`, `+6 Healing (Potions & Rest)`],
     },
   ];
   eid('tr-content').innerHTML = stats.map(s => {
@@ -2024,7 +2071,8 @@ function syncTrain() {
       <div class="iinf">
         <div class="inm">${s.label}</div>
         ${s.benefits.map(b => `<div class="istat">${b}</div>`).join('')}
-        <div class="istat" style="color:var(--muted);margin-top:2px">${upgrades} upgrade${upgrades!==1?'s':''}</div>
+        ${s.upgrade.map((u,i) => `<div class="istat" style="color:var(--muted)${i===0?';margin-top:4px':''}">${u}</div>`).join('')}
+        <div class="istat" style="color:var(--muted)">${upgrades} upgrade${upgrades!==1?'s':''}</div>
       </div>
       <span class="icost" style="color:var(--mp);white-space:nowrap">${cost} XP</span>
       <button class="btn btn-purple ibtn" ${afford?'':'disabled'} onclick="doTrain('${s.key}')">Train</button>
@@ -2094,6 +2142,7 @@ function closeEvt() {
 // ═══════════════════════════════════════════════════
 
 function endGame(reason) {
+  deleteSave();  // clear save on game over
   eid('lose-desc').textContent = reason;
   show('s-lose');
 }
@@ -2104,7 +2153,11 @@ function winGame() {
   eid('win-desc').textContent =
     `You slew Pyraxis ${timing} and rescued Lyra. The kingdom rejoices!`;
   show('s-win');
+  deleteSave();  // clear save after winning
 }
+
+// ── boot ──────────────────────────────────────────
+syncTitle();  // show/hide Continue button based on existing save
 </script>
 </body>
 </html>
