@@ -417,17 +417,17 @@ body {
 
   <div class="card">
     <div class="clabel">Hero</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;font-size: 13.5px;color:var(--muted)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:8px;font-size: 13.5px;color:var(--muted)">
       <div style="display:flex;flex-direction:column;gap:5px">
         <span>🗡️ <span id="p-wpn" style="color:var(--text)">Rusty Dagger</span></span>
         <span>🛡️ <span id="p-arm" style="color:var(--text)">Peasant Clothes</span></span>
-        <span>🧪 <span id="p-pot" style="color:var(--text)">2 potions</span></span>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
         <span>⚔️ <span id="p-cbt" style="color:var(--text)">6, 1 die</span></span>
         <span>⚡ <span id="p-res" style="color:var(--text)">+1 die/turn</span></span>
       </div>
     </div>
+    <div id="p-pot" style="display:flex;flex-direction:column;gap:4px;font-size:13.5px;margin-bottom:10px"></div>
     <div style="display:flex;justify-content:space-between;font-size: 13px;color:var(--muted);margin-bottom:3px">
       <span>XP</span><span id="p-xp">0</span>
     </div>
@@ -514,7 +514,7 @@ body {
     <div id="attack-buttons" style="display:flex;flex-wrap:wrap;gap:7px"></div>
     <div class="row">
       <button class="btn btn-gray"  id="btn-def"  onclick="cDefend()">🛡️ Defend</button>
-      <button class="btn btn-green" id="btn-pot"  onclick="cPotion()">🧪 Potion</button>
+      <button class="btn btn-green" id="btn-pot" onclick="openPotionModal()">🧪 Potion</button>
       <button class="btn btn-gray"  id="btn-flee" onclick="cFlee()">💨 Flee</button>
     </div>
   </div>
@@ -651,6 +651,17 @@ body {
   </div>
 </div>
 
+<!-- ══════════════ POTION MODAL ══════════════ -->
+<div class="overlay" id="potion-modal" onclick="if(event.target===this)closePotionModal()">
+  <div class="modal" style="padding:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h2 style="margin:0">🧪 Use Potion</h2>
+      <button class="btn btn-gray" style="padding:4px 12px;font-size:14px;flex-shrink:0;width:auto" onclick="closePotionModal()">✕</button>
+    </div>
+    <div id="potion-modal-items" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
 <!-- ══════════════ EVENT MODAL ══════════════ -->
 <div class="overlay" id="evt-modal">
   <div class="modal" style="text-align:center">
@@ -674,12 +685,12 @@ body {
 // ═══════════════════════════════════════════════════
 
 const KINGDOMS = [
-  { id:'ashenvale', name:'Ashenvale',    icon:'🏰', desc:'Your home kingdom. Pyraxis the Dragon lairs here.',             monsters:['rat','bat','goblin','wolf'],                    tier:1 },
-  { id:'thornwood', name:'Thornwood',    icon:'🌲', desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['giantrat','giantbat','wolf','orc','skeleton'],  tier:2 },
-  { id:'ironforge', name:'Ironforge',    icon:'⚒️', desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['orc','troll'],                                 tier:2 },
-  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['giantbat','skeleton','dknight','wyvern'],       tier:3 },
-  { id:'saltmere',  name:'Saltmere',     icon:'⚓', desc:'A port city plagued by pirates and sea monsters.',              monsters:['pirate','seatroll','orc'],                      tier:2 },
-  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['icewolf','fgiant','wyvern'],        tier:3 },
+  { id:'ashenvale', name:'Ashenvale',    icon:'🏰', desc:'Your home kingdom. Pyraxis the Dragon lairs here.',             monsters:['rat','bat','kobold','boar','goblin','wolf'],                        tier:1 },
+  { id:'thornwood', name:'Thornwood',    icon:'🌲', desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['boar','giantrat','wolf','thief','spider','orc','harpy'],           tier:2 },
+  { id:'ironforge', name:'Ironforge',    icon:'⚒️', desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['bandit','orc','barbarian','troll'],                                 tier:2 },
+  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['skeleton','spider','ghoul','zombie','dknight','wyvern'],           tier:3 },
+  { id:'saltmere',  name:'Saltmere',     icon:'⚓', desc:'A port city plagued by pirates and sea monsters.',              monsters:['thief','pirate','seatroll','scorpion'],                            tier:2 },
+  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','scorpion','barbarian','fgiant','wyvern'], tier:3 },
 ];
 
 // Kingdom market specialties — multipliers per category
@@ -703,22 +714,31 @@ const TRAVEL = {
 function travelDays(a,b){ return TRAVEL[`${a}-${b}`]||TRAVEL[`${b}-${a}`]||2; }
 
 const MONSTERS = {
-  bandit:  { name:'Bandit',      icon:'🦹', img:'sprites/bandit.png',     hp:18,  atk:12, def:6,  xp:18, glo:18, ghi:36  },
-  rat:     { name:'Rat',         icon:'🐀', img:'sprites/rat.png',        hp:6,   atk:6,  def:0,  xp:6,  glo:0,  ghi:6   },
-  bat:     { name:'Bat',         icon:'🦇', img:'sprites/bat.png',        hp:6,   atk:6,  def:0,  xp:6,  glo:0,  ghi:6   },
-  giantrat:{ name:'Giant Rat',   icon:'🐀', img:'sprites/giant_rat.png',  hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:12  },
-  giantbat:{ name:'Giant Bat',   icon:'🦇', img:'sprites/giant_bat.png',  hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:12  },
-  goblin:  { name:'Goblin',      icon:'👺', img:'sprites/goblin.png',     hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:18  },
-  wolf:    { name:'Wolf',        icon:'🐺', img:'sprites/wolf.png',       hp:18,  atk:6,  def:0,  xp:18, glo:6,  ghi:12  },
-  orc:     { name:'Orc',         icon:'👹', img:'sprites/orc.png',        hp:24,  atk:12, def:6,  xp:30, glo:12, ghi:36  },
-  skeleton:{ name:'Skeleton',    icon:'💀', img:'sprites/skeleton.png',   hp:18,  atk:12, def:6,  xp:24, glo:12, ghi:30  },
-  pirate:  { name:'Pirate',      icon:'🏴‍☠️', img:'sprites/pirate.png',  hp:24,  atk:12, def:6,  xp:24, glo:24, ghi:48  },
-  troll:   { name:'Troll',       icon:'🧌', img:'sprites/troll.png',      hp:42,  atk:18, def:6,  xp:48, glo:30, ghi:60  },
-  seatroll:{ name:'Sea Troll',   icon:'🦑', img:'sprites/sea_troll.png',  hp:36,  atk:12, def:6,  xp:42, glo:24, ghi:54  },
-  dknight: { name:'Dark Knight', icon:'⚫', img:'sprites/dark_knight.png',hp:48,  atk:18, def:12, xp:66, glo:42, ghi:96  },
-  icewolf: { name:'Ice Wolf',    icon:'🐺', img:'sprites/ice_wolf.png',   hp:30,  atk:18, def:6,  xp:36, glo:18, ghi:42  },
-  fgiant:  { name:'Frost Giant', icon:'❄️', img:'sprites/frost_giant.png',hp:60,  atk:24, def:12, xp:78, glo:54, ghi:114 },
-  wyvern:  { name:'Wyvern',      icon:'🐲', img:'sprites/wyvern.png',     hp:66,  atk:24, def:12, xp:96, glo:66, ghi:138 },
+  kobold:    { name:'Kobold',        icon:'🦎', img:'sprites/kobold.png',        hp:6,   atk:6,  def:0,  xp:6,  glo:0,  ghi:6   },
+  rat:       { name:'Rat',           icon:'🐀', img:'sprites/rat.png',          hp:6,   atk:6,  def:0,  xp:6,  glo:0,  ghi:6   },
+  bat:       { name:'Bat',           icon:'🦇', img:'sprites/bat.png',          hp:6,   atk:6,  def:0,  xp:6,  glo:0,  ghi:6   },
+  boar:      { name:'Wild Boar',     icon:'🐗', img:'sprites/wild_boar.png',     hp:12,  atk:6,  def:0,  xp:10, glo:6,  ghi:12  },
+  giantrat:  { name:'Giant Rat',     icon:'🐀', img:'sprites/giant_rat.png',    hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:12  },
+  giantbat:  { name:'Giant Bat',     icon:'🦇', img:'sprites/giant_bat.png',    hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:12  },
+  goblin:    { name:'Goblin',        icon:'👺', img:'sprites/goblin.png',       hp:12,  atk:6,  def:0,  xp:12, glo:6,  ghi:18  },
+  wolf:      { name:'Wolf',          icon:'🐺', img:'sprites/wolf.png',         hp:18,  atk:6,  def:0,  xp:18, glo:6,  ghi:12  },
+  bandit:    { name:'Bandit',        icon:'🦹', img:'sprites/bandit.png',       hp:18,  atk:12, def:6,  xp:18, glo:18, ghi:36  },
+  thief:     { name:'Thief',         icon:'🥷', img:'sprites/thief.png',        hp:18,  atk:12, def:0,  xp:20, glo:24, ghi:42  },
+  spider:    { name:'Giant Spider',  icon:'🕷️', img:'sprites/giant_spider.png',  hp:18,  atk:12, def:0,  xp:20, glo:6,  ghi:18  },
+  skeleton:  { name:'Skeleton',      icon:'💀', img:'sprites/skeleton.png',     hp:18,  atk:12, def:6,  xp:24, glo:12, ghi:30  },
+  harpy:     { name:'Harpy',         icon:'🦅', img:'sprites/harpy.png',         hp:24,  atk:18, def:0,  xp:36, glo:18, ghi:36  },
+  orc:       { name:'Orc',           icon:'👹', img:'sprites/orc.png',          hp:24,  atk:12, def:6,  xp:30, glo:12, ghi:36  },
+  ghoul:     { name:'Ghoul',         icon:'👻', img:'sprites/ghoul.png',         hp:24,  atk:12, def:6,  xp:30, glo:12, ghi:30  },
+  pirate:    { name:'Pirate',        icon:'🏴‍☠️', img:'sprites/pirate.png',  hp:24,  atk:12, def:6,  xp:24, glo:24, ghi:48  },
+  icewolf:   { name:'Ice Wolf',      icon:'🐺', img:'sprites/ice_wolf.png',     hp:30,  atk:18, def:6,  xp:36, glo:18, ghi:42  },
+  zombie:    { name:'Zombie',        icon:'🧟', img:'sprites/zombie.png',       hp:30,  atk:12, def:6,  xp:36, glo:6,  ghi:18  },
+  seatroll:  { name:'Sea Troll',     icon:'🦑', img:'sprites/sea_troll.png',    hp:36,  atk:12, def:6,  xp:42, glo:24, ghi:54  },
+  barbarian: { name:'Barbarian',     icon:'🪖', img:'sprites/barbarian.png',    hp:36,  atk:18, def:6,  xp:48, glo:30, ghi:60  },
+  scorpion:  { name:'Giant Scorpion',icon:'🦂', img:'sprites/giant_scorpion.png',hp:36,  atk:18, def:6,  xp:42, glo:24, ghi:48  },
+  troll:     { name:'Troll',         icon:'🧌', img:'sprites/troll.png',        hp:42,  atk:18, def:6,  xp:48, glo:30, ghi:60  },
+  dknight:   { name:'Dark Knight',   icon:'⚫', img:'sprites/dark_knight.png',  hp:48,  atk:18, def:12, xp:66, glo:42, ghi:96  },
+  fgiant:    { name:'Frost Giant',   icon:'❄️', img:'sprites/frost_giant.png',  hp:60,  atk:24, def:12, xp:78, glo:54, ghi:114 },
+  wyvern:    { name:'Wyvern',        icon:'🐲', img:'sprites/wyvern.png',       hp:66,  atk:24, def:12, xp:96, glo:66, ghi:138 },
 };
 const DRAGON = { name:"Pyraxis the Dragon", icon:'🐉', img:'sprites/dragon.png', hp:120, atk:30, def:12, xp:0, glo:0, ghi:0 };
 
@@ -736,8 +756,14 @@ const ARMORS = [
   { id:'plate',   name:'Plate Armor',     icon:'🦺', def:18, cost:342 },
   { id:'dscale',  name:'Dragon Scale',    icon:'🐉', def:24, cost:684 },
 ];
-const POTION_COST = 30;
+const MAX_POTIONS = 6;
 const POTION_HEAL = 42;
+const POTIONS = [
+  { id:'heal',     name:'Healing Potion',      icon:'🧪', desc:`Restore ${POTION_HEAL} HP`,   cost:30 },
+  { id:'regen',    name:'Regeneration Potion', icon:'💚', desc:'+3 HP/turn for 6 turns',       cost:36 },
+  { id:'stam',     name:'Stamina Potion',       icon:'⚡', desc:'Restore full stamina',         cost:24 },
+  { id:'strength', name:'Strength Potion',      icon:'💪', desc:'+1 die for 6 turns',           cost:42 },
+];
 
 // Stamina constants — all multiples of 6 (one die = 6)
 // Attacking costs 6 per die; Defending costs 0. Resilience restores stamina each turn.
@@ -774,6 +800,8 @@ function loadSave() {
     // patch missing fields added in later versions
     if (d.resilience          === undefined) d.resilience = 6;
     d.maxStam = d.baseCombat; // pool always equals combat stat
+    if (typeof d.potions === 'number') d.potions = { heal: d.potions, regen:0, stam:0, strength:0 };
+    if (!d.potions) d.potions = { heal:0, regen:0, stam:0, strength:0 };
     if (!d.trainCount)                       d.trainCount = {};
     if (d.trainCount.resilience === undefined) d.trainCount.resilience = 0;
     return d;
@@ -806,7 +834,7 @@ function initState() {
     maxStam: 6, // always kept in sync with baseCombat
     trainCount: { combat:0, hp:0, resilience:0 },
     weapon: WEAPONS[0], armor: ARMORS[0],
-    potions: 2,
+    potions: { heal:2, regen:0, stam:0, strength:0 },
     kingdom: KINGDOMS[0],
     log: [],
   };
@@ -819,7 +847,7 @@ function initState() {
 const d6   = () => Math.floor(Math.random() * 6) + 1;
 const rand = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
 
-function pCombat()      { return G.baseCombat; }           // dice determined by combat stat only
+function pCombat()      { return G.baseCombat + (typeof CB !== 'undefined' && CB.strengthTurns > 0 ? 6 : 0); }
 function pWeaponBonus() { return G.weapon.atk; }           // flat damage added after rolling
 function pDef()         { return G.armor.def; }            // flat block from armor only
 
@@ -913,7 +941,11 @@ function syncKingdom() {
   const resDice = nDice(G.resilience);
   eid('p-res').textContent  = `+${resDice} ${resDice === 1 ? 'die' : 'dice'}/turn`;
   eid('p-wpn').textContent  = G.weapon.name;
-  eid('p-pot').textContent  = `${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
+  const potEl = eid('p-pot');
+  const ownedPots = POTIONS.filter(p => (G.potions[p.id] || 0) > 0);
+  potEl.innerHTML = ownedPots.length
+    ? ownedPots.map(p => `<span style="color:var(--muted)">${p.icon} <span style="color:var(--text)">${p.name}</span> ×${G.potions[p.id]}</span>`).join('')
+    : `<span style="color:var(--muted)">No potions</span>`;
   const cheapest = Math.min(...['combat','hp','resilience'].map(s => trainCost(s)));
   eid('p-xp').textContent   = G.xp;
   eid('bar-xp').style.width = pct(G.xp, cheapest);
@@ -943,6 +975,8 @@ function newGame() {
   addLog('💡 HINT: Visit the marketplace to purchase a weapon.', 'lhi');
   gotoKingdom();
 }
+
+function totalPotions() { return Object.values(G.potions).reduce((a,b) => a+b, 0); }
 
 function innCost() {
   return (G.kingdom.tier || 1) * 12;  // tier1=12g, tier2=24g, tier3=36g
@@ -1067,9 +1101,10 @@ function doTravel(k, days) {
       showEvt('💰', 'Lucky Find!', `An abandoned chest on the road. +${found} gold!`);
       addLog(`💰 Found chest on the road! +${found} gold.`, 'lgld');
     } else {
-      G.potions += 1;
-      showEvt('🧙', 'Traveling Merchant', 'A kind merchant gifted you a health potion!');
-      addLog('🧪 A merchant gifted you a potion.', 'lok');
+      const gift = totalPotions() < MAX_POTIONS ? POTIONS[Math.floor(Math.random()*POTIONS.length)] : null;
+      if (gift) { G.potions[gift.id]++; }
+      showEvt('🧙', 'Traveling Merchant', gift ? `A kind merchant gifted you a ${gift.name}!` : 'A merchant tried to gift you a potion, but your bag is full!');
+      addLog(gift ? `${gift.icon} A merchant gifted you a ${gift.name}.` : '🧙 Merchant gift declined — bag full.', 'lok');
     }
   }
   finishTravel();
@@ -1097,7 +1132,8 @@ function syncMarket() {
   eid('m-gold').textContent = `💰 ${G.gold}`;
   eid('m-ewpn').textContent = G.weapon.name;
   eid('m-earm').textContent = G.armor.name;
-  eid('m-epot').textContent = `${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
+  const tp2 = totalPotions();
+  eid('m-epot').textContent = `${tp2} potion${tp2 !== 1 ? 's' : ''}`;
   // specialty banner
   const mod = MARKET_MODS[G.kingdom.id] || {};
   const specEl = eid('m-kspec');
@@ -1195,18 +1231,26 @@ function renderMItems() {
       }
     });
   } else if (mTab_cur === 'p') {
-    const price  = kingdomPrice(POTION_COST, 'potions');
-    const sale   = price < POTION_COST;
-    const afford = G.gold >= price;
-    html = `<div class="irow">
-      <div class="iico">🧪</div>
-      <div class="iinf">
-        <div class="inm">Health Potion</div>
-        <div class="istat">Restores ${POTION_HEAL} HP · You have: ${G.potions}</div>
-      </div>
-      <span class="icost" style="color:var(--gold)">${sale ? `<span class="orig">${POTION_COST}g</span>` : ''}${price}g${sale ? '<span class="sale">SALE</span>' : ''}</span>
-      <button class="btn btn-green ibtn" ${afford ? '' : 'disabled'} onclick="buyPotion()">Buy</button>
-    </div>`;
+    const full = totalPotions() >= MAX_POTIONS;
+    html = POTIONS.map(p => {
+      const price  = kingdomPrice(p.cost, 'potions');
+      const sale   = price < p.cost;
+      const afford = G.gold >= price && !full;
+      const owned  = G.potions[p.id] || 0;
+      return `<div class="irow">
+        <div class="iico">${p.icon}</div>
+        <div class="iinf">
+          <div class="inm">${p.name}</div>
+          <div class="istat">${p.desc} · Have: ${owned}</div>
+        </div>
+        <span class="icost" style="color:var(--gold)">${sale ? `<span class="orig">${p.cost}g</span>` : ''}${price}g${sale ? '<span class="sale">SALE</span>' : ''}</span>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <button class="btn btn-green ibtn" ${afford ? '' : 'disabled'} onclick="buyPotion('${p.id}')">Buy</button>
+          ${owned > 0 ? `<button class="btn btn-gray ibtn" onclick="sellPotion('${p.id}')">Sell</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    if (full) html = `<div style="text-align:center;color:var(--muted);padding:8px;font-size:13px">Carrying limit reached (${MAX_POTIONS})</div>` + html;
   }
 
   box.innerHTML = html;
@@ -1225,12 +1269,6 @@ function sellItem(type) {
     addLog(`💸 Sold ${G.armor.name} for ${val}g.`, 'lgld');
     G.gold += val;
     G.armor = ARMORS[0]; // revert to Peasant Clothes
-  } else if (type === 'p') {
-    if (G.potions <= 0) return;
-    const val = sellPrice(POTION_COST);
-    G.potions--;
-    G.gold += val;
-    addLog(`💸 Sold a potion for ${val}g.`, 'lgld');
   }
   syncMarket();
 }
@@ -1266,12 +1304,24 @@ function buyItem(type, id) {
   syncMarket();
 }
 
-function buyPotion() {
-  const price = kingdomPrice(POTION_COST, 'potions');
+function buyPotion(id) {
+  const p = POTIONS.find(x => x.id === id);
+  if (!p || totalPotions() >= MAX_POTIONS) return;
+  const price = kingdomPrice(p.cost, 'potions');
   if (G.gold < price) return;
   G.gold -= price;
-  G.potions++;
-  addLog(`🧪 Bought a potion for ${price}g.`, 'lgld');
+  G.potions[id]++;
+  addLog(`${p.icon} Bought ${p.name} for ${price}g.`, 'lgld');
+  syncMarket();
+}
+
+function sellPotion(id) {
+  const p = POTIONS.find(x => x.id === id);
+  if (!p || !G.potions[id] || G.potions[id] <= 0) return;
+  const val = sellPrice(p.cost);
+  G.potions[id]--;
+  G.gold += val;
+  addLog(`💸 Sold ${p.name} for ${val}g.`, 'lgld');
   syncMarket();
 }
 
@@ -1287,7 +1337,9 @@ function beginCombat(mData, isBoss) {
     mMaxHp:  mData.hp,
     boss:    isBoss,
     over:    false,
-    stamina: G.baseCombat,
+    stamina:       G.baseCombat,
+    regenTurns:    0,
+    strengthTurns: 0,
     clog:    [],
   };
   // header
@@ -1307,7 +1359,7 @@ function beginCombat(mData, isBoss) {
     <div id="attack-buttons" style="display:flex;flex-wrap:wrap;gap:7px"></div>
     <div class="row">
       <button class="btn btn-gray"  id="btn-def"  onclick="cDefend()">🛡️ Defend</button>
-      <button class="btn btn-green" id="btn-pot"  onclick="cPotion()">🧪 Potion</button>
+      <button class="btn btn-green" id="btn-pot" onclick="openPotionModal()">🧪 Potion</button>
       <button class="btn btn-gray"  id="btn-flee" onclick="cFlee()">💨 Flee</button>
     </div>`;
   CB.clog = [];
@@ -1325,7 +1377,8 @@ function syncCombatBars() {
   eid('c-ehp').textContent   = `${Math.max(0, CB.mHp)}/${CB.mMaxHp}`;
   eid('bar-php').style.width = pct(G.hp, G.maxHp);
   eid('c-php').textContent   = `${G.hp}/${G.maxHp}`;
-  eid('c-pots').textContent  = `🧪 ${G.potions} potion${G.potions !== 1 ? 's' : ''}`;
+  const cp = totalPotions();
+  eid('c-pots').textContent  = `🧪 ${cp} potion${cp !== 1 ? 's' : ''}`;
   // stamina bar color
   const pool  = G.baseCombat;
   const stPct = CB.stamina / pool;
@@ -1373,8 +1426,8 @@ function syncCombatButtons() {
     container.appendChild(btn);
   }
 
-  eid('btn-pot').disabled  = G.potions <= 0 || CB.over;
-  eid('btn-flee').disabled = CB.boss        || CB.over;
+  eid('btn-pot').disabled  = totalPotions() <= 0 || CB.over;
+  eid('btn-flee').disabled = CB.boss || CB.over;
 }
 
 // ═══════════════════════════════════════════════════
@@ -1832,6 +1885,12 @@ function cAttack(diceCount) {
 
   setTimeout(() => {
     CB.stamina = Math.min(G.baseCombat, CB.stamina + G.resilience);
+    if (CB.regenTurns > 0) {
+      const ra = Math.min(3, G.maxHp - G.hp);
+      if (ra > 0) { G.hp += ra; clog(`💚 Regen: +${ra} HP (${CB.regenTurns} turns left)`); }
+      CB.regenTurns--;
+    }
+    if (CB.strengthTurns > 0) { CB.strengthTurns--; syncCombatButtons(); }
     syncCombatBars();
     flash('bar-ehp', false);
     if (eTaken > 0) flash('bar-php', false);
@@ -1860,6 +1919,12 @@ function cDefend() {
 
   setTimeout(() => {
     CB.stamina = Math.min(G.baseCombat, CB.stamina + G.resilience);
+    if (CB.regenTurns > 0) {
+      const ra = Math.min(3, G.maxHp - G.hp);
+      if (ra > 0) { G.hp += ra; clog(`💚 Regen: +${ra} HP (${CB.regenTurns} turns left)`); }
+      CB.regenTurns--;
+    }
+    if (CB.strengthTurns > 0) { CB.strengthTurns--; syncCombatButtons(); }
     syncCombatBars();
     flash('bar-st', true);
     if (taken > 0) flash('bar-php', false);
@@ -1869,24 +1934,59 @@ function cDefend() {
   setTimeout(unlockCombat, ROLL_MS + SETTLE_MS + 80);
 }
 
-function cPotion() {
-  if (CB.over || G.potions <= 0) return;
-  G.potions--;
-  const heal = Math.min(POTION_HEAL + G.resilience, G.maxHp - G.hp);
-  G.hp += heal;
-  clog(`🧪 You drink a potion and recover ${heal} HP.`);
+function openPotionModal() {
+  if (CB.over || totalPotions() <= 0) return;
+  const list = eid('potion-modal-items');
+  list.innerHTML = POTIONS.map(p => {
+    const count = G.potions[p.id] || 0;
+    return `<div class="irow" style="${count === 0 ? 'opacity:.4' : ''}">
+      <div class="iico">${p.icon}</div>
+      <div class="iinf">
+        <div class="inm">${p.name}</div>
+        <div class="istat">${p.desc}</div>
+      </div>
+      <span style="font-size:13px;color:var(--muted);margin-right:6px">×${count}</span>
+      <button class="btn btn-green ibtn" ${count === 0 ? 'disabled' : ''} onclick="cPotion('${p.id}')">Use</button>
+    </div>`;
+  }).join('');
+  eid('potion-modal').classList.add('on');
+}
 
-  // Enemy free attack
-  const eDice = rollArr(nDice(CB.m.atk));
-  const eDmg  = calcEnemyDmg(eDice);
-  G.hp = Math.max(0, G.hp - eDmg);
-  clog(`${CB.m.name} attacks while you drink! ${eDmg} damage.`);
+function closePotionModal() {
+  eid('potion-modal').classList.remove('on');
+}
+
+function cPotion(id) {
+  const p = POTIONS.find(x => x.id === id);
+  if (CB.over || !p || (G.potions[id] || 0) <= 0) return;
+  closePotionModal();
+  G.potions[id]--;
+
+  switch(id) {
+    case 'heal': {
+      const heal = Math.min(POTION_HEAL, G.maxHp - G.hp);
+      G.hp += heal;
+      clog(`🧪 Healing potion: +${heal} HP.`);
+      flash('bar-php', true);
+      break;
+    }
+    case 'regen':
+      CB.regenTurns = 6;
+      clog(`💚 Regeneration active! +3 HP/turn for 6 turns.`);
+      break;
+    case 'stam':
+      CB.stamina = G.baseCombat;
+      clog(`⚡ Stamina fully restored!`);
+      flash('bar-st', true);
+      break;
+    case 'strength':
+      CB.strengthTurns = 6;
+      clog(`💪 Strength boost! +1 die for 6 turns.`);
+      break;
+  }
 
   syncCombatBars();
-  flash('bar-php', true);  // healed
-  setTimeout(() => flash('bar-php', false), 300); // then took damage
-  if (G.hp <= 0) { setTimeout(combatLose, 1475); return; }
-  unlockCombat();
+  syncCombatButtons();
 }
 
 function cFlee() {
