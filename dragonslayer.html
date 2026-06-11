@@ -2262,6 +2262,12 @@ function winGame() {
   deleteSave();  // clear save after winning
 }
 
+// ── sprite preload ────────────────────────────────
+(function preloadSprites() {
+  const imgs = Object.values(MONSTERS).map(m => m.img).concat([DRAGON.img]);
+  imgs.forEach(src => { if (src) { const i = new Image(); i.src = src; } });
+})();
+
 // ── boot ──────────────────────────────────────────
 syncTitle();  // show/hide Continue button based on existing save
 </script>
