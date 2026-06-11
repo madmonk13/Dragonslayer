@@ -341,6 +341,7 @@ body {
       <button class="btn btn-gold" id="btn-continue-save" style="width:100%;padding:16px;font-size:17px;display:none" onclick="continueGame()">▶ Continue</button>
       <button class="btn btn-red"  id="btn-new-game"      style="width:100%;padding:16px;font-size:17px" onclick="newGame()">⚔️ Begin Quest</button>
       <button class="btn btn-gray" style="width:100%" onclick="show('s-tutorial')">📖 How to Fight</button>
+      <button class="btn btn-gray" id="btn-combat-log" style="width:100%;display:none" onclick="renderCombatLog();show('s-combatlog')">📕 Combat Log</button>
     </div>
   </div>
 </div>
@@ -372,7 +373,7 @@ body {
     <p style="font-size: 14px;line-height:1.6;color:var(--text)">
       <strong>🛡️ Defend</strong> — skip your attack and commit all your dice to blocking the enemy's strike. The best option when you need to take as little damage as possible. Stamina still restores at end of turn.<br><br>
       <strong>💨 Flee</strong> — your dice defend one final enemy attack. If you take no damage, you escape. Otherwise you stay and keep fighting.<br><br>
-      <strong>🧪 Potion</strong> — restores health mid-combat. The enemy gets a free attack while you drink.
+      <strong>🧪 Potion</strong> — use mid-combat without consuming your turn. Healing restores HP instantly. Regeneration heals over several turns. Stamina fully restores your stamina pool. Strength adds +1 attack die for several turns. Invisibility causes the enemy to miss next turn (great for fleeing). Speed gives you two attacks in one turn or guarantees escape.
     </p>
   </div>
 
@@ -386,15 +387,25 @@ body {
   <div class="card">
     <div class="clabel">Stats &amp; Training</div>
     <p style="font-size: 14px;line-height:1.6;color:var(--text)">
-      Spend XP at the Training Hall to upgrade your four stats:<br><br>
-      <strong>⚔️ Combat</strong> — more power means more dice to attack and defend with.<br>
+      Spend XP at the Training Hall to upgrade your three stats:<br><br>
+      <strong>⚔️ Combat</strong> — more power means more dice to attack and defend with. Also sets the size of your stamina pool.<br>
       <strong>❤️ Health</strong> — increases your maximum HP.<br>
-      <strong>⚡ Stamina</strong> — increases your stamina pool, keeping more dice available longer.<br>
-      <strong>❤️‍🩹 Resilience</strong> — restores more stamina per turn and increases healing from potions and rest.
+      <strong>⚡ Stamina</strong> — increases how much stamina you recover per turn, keeping more dice available for longer fights.
     </p>
   </div>
 
   <button class="btn btn-red" style="margin-top:4px" onclick="show('s-title')">← Back to Title</button>
+</div>
+
+<!-- ══════════════ COMBAT LOG ══════════════ -->
+<div id="s-combatlog" class="screen">
+  <div class="backrow">
+    <button class="btn btn-gray backbtn" onclick="show('s-title')">← Back</button>
+    <h2>📕 Combat Log</h2>
+    <div class="sp"></div>
+  </div>
+  <div id="combatlog-list"></div>
+  <button class="btn btn-gray" style="margin-top:4px" onclick="show('s-title')">← Back to Title</button>
 </div>
 
 <!-- ══════════════ KINGDOM ══════════════ -->
@@ -815,7 +826,13 @@ function loadSave() {
     if (!d.potions)    d.potions    = { heal:0, regen:0, stam:0, strength:0, invis:0, speed:0 };
     if (d.potions.invis  === undefined) d.potions.invis  = 0;
     if (d.potions.speed  === undefined) d.potions.speed  = 0;
-    if (!d.encountered) d.encountered = [];
+    // migrate old encountered array → monsterLog object
+    if (Array.isArray(d.encountered)) {
+      d.monsterLog = {};
+      d.encountered.forEach(k => { d.monsterLog[k] = { seen:1, wins:0, losses:0 }; });
+      delete d.encountered;
+    }
+    if (!d.monsterLog) d.monsterLog = {};
     if (!d.trainCount)                       d.trainCount = {};
     if (d.trainCount.resilience === undefined) d.trainCount.resilience = 0;
     return d;
@@ -826,8 +843,57 @@ function syncTitle() {
   const hasSave = !!localStorage.getItem(SAVE_KEY);
   const contBtn = eid('btn-continue-save');
   const newBtn  = eid('btn-new-game');
+  const logBtn  = eid('btn-combat-log');
   if (contBtn) contBtn.style.display = hasSave ? '' : 'none';
   if (newBtn)  newBtn.textContent    = hasSave ? '🗡️ New Game' : '⚔️ Begin Quest';
+  if (logBtn) {
+    let hasLog = false;
+    if (hasSave) {
+      try { const d = JSON.parse(localStorage.getItem(SAVE_KEY)); hasLog = d.monsterLog && Object.keys(d.monsterLog).length > 0; } catch(e) {}
+    }
+    logBtn.style.display = hasLog ? '' : 'none';
+  }
+}
+
+function monsterKingdomNames(key) {
+  return KINGDOMS.filter(k => k.monsters.includes(key)).map(k => k.name).join(', ') || '—';
+}
+
+function renderCombatLog() {
+  // Use live G.monsterLog if in-game, otherwise load from save
+  let log = (G && G.monsterLog) ? G.monsterLog : {};
+  if (!Object.keys(log).length) {
+    try { const d = JSON.parse(localStorage.getItem(SAVE_KEY)); if (d && d.monsterLog) log = d.monsterLog; } catch(e) {}
+  }
+
+  const keys = Object.keys(log);
+  if (!keys.length) {
+    eid('combatlog-list').innerHTML = '<div class="card" style="text-align:center;color:var(--muted);font-size:14px">No monsters encountered yet.</div>';
+    return;
+  }
+
+  const rows = keys.map(k => {
+    const m   = MONSTERS[k] || (k === 'dragon' ? DRAGON : null);
+    if (!m) return '';
+    const entry  = log[k];
+    const dice   = Math.floor(m.atk / 6);
+    const armor  = Math.floor(m.def / 6);
+    const loc    = k === 'dragon' ? 'Final Boss' : monsterKingdomNames(k);
+    return `<div class="irow">
+      <div class="iico" style="font-size:22px">${m.img ? `<img src="${m.img}" style="width:32px;height:32px;object-fit:contain">` : m.icon}</div>
+      <div class="iinf">
+        <div class="inm">${m.name}</div>
+        <div class="istat">${dice}d atk · ${armor > 0 ? armor + ' armor' : 'no armor'} · ${loc}</div>
+      </div>
+      <div style="text-align:right;font-size:12px;line-height:1.7;color:var(--muted);white-space:nowrap">
+        <div>Seen <strong style="color:var(--text)">${entry.seen}</strong></div>
+        <div style="color:var(--hp)">W <strong>${entry.wins}</strong></div>
+        <div style="color:var(--accent)">L <strong>${entry.losses}</strong></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  eid('combatlog-list').innerHTML = `<div class="card">${rows}</div>`;
 }
 
 function continueGame() {
@@ -849,7 +915,7 @@ function initState() {
     trainCount: { combat:0, hp:0, resilience:0 },
     weapon: WEAPONS[0], armor: ARMORS[0],
     potions: { heal:2, regen:0, stam:0, strength:0, invis:0, speed:0 },
-    encountered: [],
+    monsterLog: {},
     kingdom: KINGDOMS[0],
     log: [],
   };
@@ -970,7 +1036,7 @@ function syncKingdom() {
   const k = G.kingdom;
   eid('k-name').textContent = `${k.icon} ${k.name}`;
   eid('k-desc').textContent = k.desc;
-  const seenHere = k.monsters.filter(m => G.encountered.includes(m));
+  const seenHere = k.monsters.filter(m => G.monsterLog[m]);
   const monWrap  = eid('k-mon-wrap');
   if (seenHere.length > 0) {
     monWrap.style.display = '';
@@ -1357,7 +1423,10 @@ function sellPotion(id) {
 // ═══════════════════════════════════════════════════
 
 function beginCombat(mData, isBoss) {
-  if (mData._key && !G.encountered.includes(mData._key)) G.encountered.push(mData._key);
+  if (mData._key) {
+    if (!G.monsterLog[mData._key]) G.monsterLog[mData._key] = { seen:0, wins:0, losses:0 };
+    G.monsterLog[mData._key].seen++;
+  }
   saveGame();  // snapshot state before combat — crash/close restores to pre-fight
   CB = {
     m:       mData,
@@ -2153,6 +2222,7 @@ function combatWin() {
   lockCombat();
   const gold = rand(CB.m.glo, CB.m.ghi);
   G.gold += gold;
+  if (CB.m._key && G.monsterLog[CB.m._key]) G.monsterLog[CB.m._key].wins++;
 
   if (CB.boss) {
     _showCombatEndResult(
@@ -2186,6 +2256,7 @@ function combatWin() {
 function combatLose() {
   CB.over = true;
   lockCombat();
+  if (CB.m._key && G.monsterLog[CB.m._key]) G.monsterLog[CB.m._key].losses++;
 
   if (CB.boss) {
     _showCombatEndResult(
