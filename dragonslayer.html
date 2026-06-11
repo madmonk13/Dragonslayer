@@ -454,6 +454,10 @@ body {
     <div class="kinf" id="k-mon-wrap">Monsters Encountered: <strong id="k-mon">—</strong></div>
   </div>
 
+  <div id="pyraxis-warn" style="display:none;margin:10px 0 2px;padding:10px 14px;background:rgba(220,50,30,.15);border:1px solid rgba(220,80,50,.4);border-radius:8px;font-size:13px;color:#ff7f6a;text-align:center;font-weight:600">
+    ⚠️ Pyraxis must be faced soon — you may not have time to travel back before Day 30!
+  </div>
+
   <button class="btn btn-dragon" id="btn-dragon" onclick="challengeDragon()" style="display:none">
     🐉 Challenge Pyraxis the Dragon
   </button>
@@ -1051,6 +1055,12 @@ function syncKingdom() {
     monWrap.style.display = 'none';
   }
   eid('btn-dragon').style.display = k.id === 'ashenvale' ? '' : 'none';
+  const warnEl = eid('pyraxis-warn');
+  if (warnEl) {
+    const daysToAshenvale = travelDays(k.id, 'ashenvale');
+    const showWarn = k.id !== 'ashenvale' && (G.day + daysToAshenvale >= 30);
+    warnEl.style.display = showWarn ? '' : 'none';
+  }
   const restBtn = eid('btn-rest');
   restBtn.disabled    = G.hp >= G.maxHp;
   restBtn.textContent = '😴 Rest';
@@ -1129,6 +1139,7 @@ function explore() {
 }
 
 function challengeDragon() {
+  if (!confirm('⚔️ Challenge Pyraxis the Dragon?\n\nThis is a fight to the death. Make sure you are prepared!')) return;
   addLog("🐉 You charge toward Pyraxis!", 'lbad');
   beginCombat({ ...DRAGON, _key: 'dragon' }, true);
 }
