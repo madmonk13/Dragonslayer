@@ -2443,7 +2443,13 @@ function winGame() {
 
 // ── sprite preload ────────────────────────────────
 (function preloadSprites() {
-  const imgs = Object.values(MONSTERS).map(m => m.img).concat([DRAGON.img]);
+  const imgs = [
+    ...Object.values(MONSTERS).map(m => m.img),
+    DRAGON.img,
+    ...WEAPONS.map(w => w.img),
+    ...POTIONS.map(p => p.img),
+    ...KINGDOMS.map(k => k.banner),
+  ];
   imgs.forEach(src => { if (src) { const i = new Image(); i.src = src; } });
 })();
 
