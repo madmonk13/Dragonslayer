@@ -374,7 +374,7 @@ body {
     <p style="font-size: 14px;line-height:1.6;color:var(--text)">
       <strong>🛡️ Defend</strong> — skip your attack and commit all your dice to blocking the enemy's strike. The best option when you need to take as little damage as possible. Stamina still restores at end of turn.<br><br>
       <strong>💨 Flee</strong> — your dice defend one final enemy attack. If you take no damage, you escape. Otherwise you stay and keep fighting.<br><br>
-      <strong>🧪 Potion</strong> — use mid-combat without consuming your turn. Healing restores HP instantly. Regeneration heals over several turns. Stamina fully restores your stamina pool. Strength adds +1 attack die for several turns. Invisibility causes the enemy to miss next turn (great for fleeing). Speed gives you two attacks in one turn or guarantees escape.
+      <strong>🧪 Potion</strong> — use mid-combat without consuming your turn. Healing restores HP instantly. Regeneration heals over several turns. Stamina fully restores your stamina pool. Strength adds +1 attack die and +1 die of stamina recovery per turn for several turns. Invisibility causes the enemy to miss next turn (great for fleeing). Speed gives you two attacks in one turn or guarantees escape.
     </p>
   </div>
 
@@ -784,7 +784,7 @@ const POTIONS = [
   { id:'heal',     name:'Healing Potion',      icon:'🧪', img:'potions/healing.png',       desc:`Restore ${POTION_HEAL} HP`,   cost:30 },
   { id:'regen',    name:'Regeneration Potion', icon:'💚', img:'potions/regeneration.png',  desc:'+3 HP/turn for 6 turns',       cost:36 },
   { id:'stam',     name:'Stamina Potion',      icon:'⚡', img:'potions/stamina.png',        desc:'Restore full stamina',         cost:24 },
-  { id:'strength', name:'Strength Potion',     icon:'💪', img:'potions/strength.png',      desc:'+1 die for 6 turns',           cost:42 },
+  { id:'strength', name:'Strength Potion',     icon:'💪', img:'potions/strength.png',      desc:'+1 attack die & +1 die recovery/turn for 6 turns', cost:42 },
   { id:'invis',    name:'Invisibility Potion', icon:'👻', img:'potions/invisibility.png',  desc:'Enemy misses next turn',        cost:48 },
   { id:'speed',    name:'Speed Potion',        icon:'💨', img:'potions/speed.png',          desc:'Attack twice next turn',        cost:54 },
 ];
@@ -2052,7 +2052,7 @@ function cAttack(diceCount) {
   showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defeated);
 
   setTimeout(() => {
-    CB.stamina = Math.min(G.baseCombat, CB.stamina + G.resilience);
+    CB.stamina = Math.min(pCombat(), CB.stamina + G.resilience + (CB.strengthTurns > 0 ? 6 : 0));
     if (CB.regenTurns > 0) {
       const ra = Math.min(3, G.maxHp - G.hp);
       if (ra > 0) { G.hp += ra; clog(`💚 Regen: +${ra} HP (${CB.regenTurns} turns left)`); }
@@ -2091,7 +2091,7 @@ function cDefend() {
   showDefendResult(eDice, ed, defDice, taken);
 
   setTimeout(() => {
-    CB.stamina = Math.min(G.baseCombat, CB.stamina + G.resilience);
+    CB.stamina = Math.min(pCombat(), CB.stamina + G.resilience + (CB.strengthTurns > 0 ? 6 : 0));
     if (CB.regenTurns > 0) {
       const ra = Math.min(3, G.maxHp - G.hp);
       if (ra > 0) { G.hp += ra; clog(`💚 Regen: +${ra} HP (${CB.regenTurns} turns left)`); }
@@ -2149,12 +2149,13 @@ function cPotion(id) {
       clog(`💚 Regeneration active! +3 HP/turn for 6 turns.`);
       break;
     case 'stam':
-      CB.stamina = G.baseCombat;
+      CB.stamina = pCombat();
       clog(`⚡ Stamina fully restored!`);
       flash('bar-st', true);
       break;
     case 'strength':
       CB.strengthTurns = 6;
+      CB.stamina = Math.min(pCombat(), CB.stamina + 6); // grant the extra die immediately
       clog(`💪 Strength boost! +1 die for 6 turns.`);
       break;
     case 'invis':
