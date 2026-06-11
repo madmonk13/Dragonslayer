@@ -342,7 +342,7 @@ body {
       <button class="btn btn-gold" id="btn-continue-save" style="width:100%;padding:16px;font-size:17px;display:none" onclick="continueGame()">▶ Continue</button>
       <button class="btn btn-red"  id="btn-new-game"      style="width:100%;padding:16px;font-size:17px" onclick="newGame()">⚔️ Begin Quest</button>
       <button class="btn btn-gray" style="width:100%" onclick="show('s-tutorial')">📖 How to Fight</button>
-      <button class="btn btn-gray" id="btn-combat-log" style="width:100%;display:none" onclick="renderCombatLog();show('s-combatlog')">📕 Combat Log</button>
+      <button class="btn btn-gray" id="btn-combat-log" style="width:100%;display:none" onclick="renderCombatLog();show('s-combatlog')" hidden>📕 Combat Log</button>
     </div>
   </div>
 </div>
@@ -852,13 +852,8 @@ function syncTitle() {
   const logBtn  = eid('btn-combat-log');
   if (contBtn) contBtn.style.display = hasSave ? '' : 'none';
   if (newBtn)  newBtn.textContent    = hasSave ? '🗡️ New Game' : '⚔️ Begin Quest';
-  if (logBtn) {
-    let hasLog = false;
-    if (hasSave) {
-      try { const d = JSON.parse(localStorage.getItem(SAVE_KEY)); hasLog = d.monsterLog && Object.keys(d.monsterLog).length > 0; } catch(e) {}
-    }
-    logBtn.style.display = hasLog ? '' : 'none';
-  }
+  // Combat Log hidden for now
+  // if (logBtn) { ... }
 }
 
 function monsterKingdomNames(key) {
