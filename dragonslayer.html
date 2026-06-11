@@ -438,7 +438,7 @@ body {
     <div class="clabel">Current Kingdom</div>
     <div class="knm" id="k-name">Ashenvale</div>
     <div class="kdsc" id="k-desc">—</div>
-    <div class="kinf">Monsters: <strong id="k-mon">—</strong></div>
+    <div class="kinf" id="k-mon-wrap">Monsters Encountered: <strong id="k-mon">—</strong></div>
   </div>
 
   <button class="btn btn-dragon" id="btn-dragon" onclick="challengeDragon()" style="display:none">
@@ -688,9 +688,9 @@ const KINGDOMS = [
   { id:'ashenvale', name:'Ashenvale',    icon:'🏰', desc:'Your home kingdom. Pyraxis the Dragon lairs here.',             monsters:['rat','bat','kobold','boar','goblin','wolf'],                        tier:1 },
   { id:'thornwood', name:'Thornwood',    icon:'🌲', desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['boar','giantrat','wolf','thief','spider','orc','harpy'],           tier:2 },
   { id:'ironforge', name:'Ironforge',    icon:'⚒️', desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['bandit','orc','barbarian','troll'],                                 tier:2 },
-  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['skeleton','spider','ghoul','zombie','dknight','wyvern'],           tier:3 },
-  { id:'saltmere',  name:'Saltmere',     icon:'⚓', desc:'A port city plagued by pirates and sea monsters.',              monsters:['thief','pirate','seatroll','scorpion'],                            tier:2 },
-  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','scorpion','barbarian','fgiant','wyvern'], tier:3 },
+  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['skeleton','spider','ghoul','zombie','banshee','wight','dknight','manticore','lich'], tier:3 },
+  { id:'saltmere',  name:'Saltmere',     icon:'⚓', desc:'A port city plagued by pirates and sea monsters.',              monsters:['thief','pirate','seatroll','scorpion','hydra'],                    tier:2 },
+  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','scorpion','barbarian','griffin','fgiant','manticore','wyvern','hydra'], tier:3 },
 ];
 
 // Kingdom market specialties — multipliers per category
@@ -737,8 +737,14 @@ const MONSTERS = {
   scorpion:  { name:'Giant Scorpion',icon:'🦂', img:'sprites/giant_scorpion.png',hp:36,  atk:18, def:6,  xp:42, glo:24, ghi:48  },
   troll:     { name:'Troll',         icon:'🧌', img:'sprites/troll.png',        hp:42,  atk:18, def:6,  xp:48, glo:30, ghi:60  },
   dknight:   { name:'Dark Knight',   icon:'⚫', img:'sprites/dark_knight.png',  hp:48,  atk:18, def:12, xp:66, glo:42, ghi:96  },
+  banshee:   { name:'Banshee',       icon:'👻', img:'sprites/banshee.png',   hp:42,  atk:18, def:0,  xp:48, glo:18, ghi:42  },
+  wight:     { name:'Wight',         icon:'☠️', img:'sprites/wight.png',     hp:48,  atk:18, def:12, xp:60, glo:24, ghi:54  },
+  griffin:   { name:'Griffin',       icon:'🦁', img:'sprites/griffin.png',   hp:54,  atk:24, def:6,  xp:60, glo:36, ghi:72  },
   fgiant:    { name:'Frost Giant',   icon:'❄️', img:'sprites/frost_giant.png',  hp:60,  atk:24, def:12, xp:78, glo:54, ghi:114 },
+  manticore: { name:'Manticore',     icon:'🐯', img:'sprites/manticore.png', hp:60,  atk:24, def:6,  xp:66, glo:42, ghi:84  },
+  lich:      { name:'Lich',          icon:'🧙', img:'sprites/lich.png',      hp:66,  atk:24, def:6,  xp:78, glo:54, ghi:108 },
   wyvern:    { name:'Wyvern',        icon:'🐲', img:'sprites/wyvern.png',       hp:66,  atk:24, def:12, xp:96, glo:66, ghi:138 },
+  hydra:     { name:'Hydra',         icon:'🐍', img:'sprites/hydra.png',     hp:72,  atk:24, def:12, xp:90, glo:60, ghi:120 },
 };
 const DRAGON = { name:"Pyraxis the Dragon", icon:'🐉', img:'sprites/dragon.png', hp:120, atk:30, def:12, xp:0, glo:0, ghi:0 };
 
@@ -746,7 +752,10 @@ const WEAPONS = [
   { id:'dagger',    name:'Rusty Dagger',    icon:'🗡️', atk:0, cost:0   },
   { id:'sword',     name:'Short Sword',     icon:'⚔️', atk:1, cost:66  },
   { id:'axe',       name:'Battle Axe',      icon:'🪓', atk:2, cost:144 },
+  { id:'spear',     name:'Spear',           icon:'🔱', atk:3, cost:216 },
   { id:'hammer',    name:'War Hammer',      icon:'🔨', atk:4, cost:294 },
+  { id:'mace',      name:'Mace',            icon:'🪃', atk:5, cost:360 },
+  { id:'longsword', name:'Longsword',        icon:'🗡️', atk:6, cost:426 },
   { id:'enchanted', name:'Enchanted Blade', icon:'✨', atk:8, cost:564 },
 ];
 const ARMORS = [
@@ -801,7 +810,8 @@ function loadSave() {
     if (d.resilience          === undefined) d.resilience = 6;
     d.maxStam = d.baseCombat; // pool always equals combat stat
     if (typeof d.potions === 'number') d.potions = { heal: d.potions, regen:0, stam:0, strength:0 };
-    if (!d.potions) d.potions = { heal:0, regen:0, stam:0, strength:0 };
+    if (!d.potions)    d.potions    = { heal:0, regen:0, stam:0, strength:0 };
+    if (!d.encountered) d.encountered = [];
     if (!d.trainCount)                       d.trainCount = {};
     if (d.trainCount.resilience === undefined) d.trainCount.resilience = 0;
     return d;
@@ -835,6 +845,7 @@ function initState() {
     trainCount: { combat:0, hp:0, resilience:0 },
     weapon: WEAPONS[0], armor: ARMORS[0],
     potions: { heal:2, regen:0, stam:0, strength:0 },
+    encountered: [],
     kingdom: KINGDOMS[0],
     log: [],
   };
@@ -955,7 +966,14 @@ function syncKingdom() {
   const k = G.kingdom;
   eid('k-name').textContent = `${k.icon} ${k.name}`;
   eid('k-desc').textContent = k.desc;
-  eid('k-mon').textContent  = k.monsters.map(m => MONSTERS[m].name).join(', ');
+  const seenHere = k.monsters.filter(m => G.encountered.includes(m));
+  const monWrap  = eid('k-mon-wrap');
+  if (seenHere.length > 0) {
+    monWrap.style.display = '';
+    eid('k-mon').textContent = seenHere.map(m => MONSTERS[m].name).join(', ');
+  } else {
+    monWrap.style.display = 'none';
+  }
   eid('btn-dragon').style.display = k.id === 'ashenvale' ? '' : 'none';
   const restBtn = eid('btn-rest');
   restBtn.disabled    = G.hp >= G.maxHp;
@@ -1014,7 +1032,7 @@ function restCountryside() {
   if (Math.random() < 0.40) {
     const pool = [...G.kingdom.monsters, 'bandit'];
     const pick  = pool[Math.floor(Math.random() * pool.length)];
-    const mData = { ...(MONSTERS[pick] || MONSTERS.bandit) };
+    const mData = { ...(MONSTERS[pick] || MONSTERS.bandit), _key: pick };
     addLog(`🌿 Rested outdoors — healed ${heal} HP. A ${mData.name} attacks!`, 'lbad');
     beginCombat(mData, false);
   } else {
@@ -1031,12 +1049,12 @@ function rest() {  // legacy stub — replaced by openRestModal
 function explore() {
   const k = G.kingdom;
   const mk = k.monsters[Math.floor(Math.random() * k.monsters.length)];
-  beginCombat({ ...MONSTERS[mk] }, false);
+  beginCombat({ ...MONSTERS[mk], _key: mk }, false);
 }
 
 function challengeDragon() {
   addLog("🐉 You charge toward Pyraxis!", 'lbad');
-  beginCombat({ ...DRAGON }, true);
+  beginCombat({ ...DRAGON, _key: 'dragon' }, true);
 }
 
 // ═══════════════════════════════════════════════════
@@ -1085,7 +1103,7 @@ function doTravel(k, days) {
     const r = Math.random();
     if (r < 0.40) {
       // Bandit ambush — always a bandit
-      const mData = { ...MONSTERS.bandit };
+      const mData = { ...MONSTERS.bandit, _key: 'bandit' };
       const goldLoss = Math.max(6, rand(6, 24));
       showEvt('🦹', 'Bandit Ambush!',
         `A gang of bandits blocks the road to ${k.name}. Fight them off or hand over your gold.`,
@@ -1330,6 +1348,7 @@ function sellPotion(id) {
 // ═══════════════════════════════════════════════════
 
 function beginCombat(mData, isBoss) {
+  if (mData._key && !G.encountered.includes(mData._key)) G.encountered.push(mData._key);
   saveGame();  // snapshot state before combat — crash/close restores to pre-fight
   CB = {
     m:       mData,
