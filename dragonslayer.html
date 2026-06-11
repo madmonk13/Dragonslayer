@@ -430,7 +430,7 @@ body {
     <div class="clabel">Hero</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:8px;font-size: 13.5px;color:var(--muted)">
       <div style="display:flex;flex-direction:column;gap:5px">
-        <span>🗡️ <span id="p-wpn" style="color:var(--text)">Rusty Dagger</span></span>
+        <span><span id="p-wpn-ico">🗡️</span> <span id="p-wpn" style="color:var(--text)">Rusty Dagger</span></span>
         <span>🛡️ <span id="p-arm" style="color:var(--text)">Peasant Clothes</span></span>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
@@ -445,7 +445,8 @@ body {
     <div class="bwrap"><div class="bfill xp" id="bar-xp" style="width:0%"></div></div>
   </div>
 
-  <div class="card">
+  <div class="card" style="padding-top:0;overflow:hidden">
+    <img id="k-banner" src="" alt="" style="width:calc(100% + 32px);margin:-0px -16px 10px;height:120px;object-fit:cover;display:block">
     <div class="clabel">Current Kingdom</div>
     <div class="knm" id="k-name">Ashenvale</div>
     <div class="kdsc" id="k-desc">—</div>
@@ -696,12 +697,12 @@ body {
 // ═══════════════════════════════════════════════════
 
 const KINGDOMS = [
-  { id:'ashenvale', name:'Ashenvale',    icon:'🏰', desc:'Your home kingdom. Pyraxis the Dragon lairs here.',             monsters:['rat','bat','kobold','boar','goblin','wolf'],                        tier:1 },
-  { id:'thornwood', name:'Thornwood',    icon:'🌲', desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['boar','giantrat','wolf','thief','spider','orc','harpy'],           tier:2 },
-  { id:'ironforge', name:'Ironforge',    icon:'⚒️', desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['bandit','orc','barbarian','troll'],                                 tier:2 },
-  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['skeleton','spider','ghoul','zombie','banshee','wight','dknight','manticore','lich'], tier:3 },
-  { id:'saltmere',  name:'Saltmere',     icon:'⚓', desc:'A port city plagued by pirates and sea monsters.',              monsters:['thief','pirate','seatroll','scorpion','hydra'],                    tier:2 },
-  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','scorpion','barbarian','griffin','fgiant','manticore','wyvern','hydra'], tier:3 },
+  { id:'ashenvale', name:'Ashenvale',    icon:'🏰', banner:'kingdom_banners/ashenvale.png',    desc:'Your home kingdom. Pyraxis the Dragon lairs here.',             monsters:['rat','bat','kobold','boar','goblin','wolf'],                        tier:1 },
+  { id:'thornwood', name:'Thornwood',    icon:'🌲', banner:'kingdom_banners/thornwood.png',    desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['boar','giantrat','wolf','thief','spider','orc','harpy'],           tier:2 },
+  { id:'ironforge', name:'Ironforge',    icon:'⚒️', banner:'kingdom_banners/ironforge.png',   desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['bandit','orc','barbarian','troll'],                                 tier:2 },
+  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', banner:'kingdom_banners/crimson_keep.png', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['skeleton','spider','ghoul','zombie','banshee','wight','dknight','manticore','lich'], tier:3 },
+  { id:'saltmere',  name:'Saltmere',     icon:'⚓', banner:'kingdom_banners/saltmere.png',    desc:'A port city plagued by pirates and sea monsters.',              monsters:['thief','pirate','seatroll','scorpion','hydra'],                    tier:2 },
+  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', banner:'kingdom_banners/frostpeak.png',   desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','scorpion','barbarian','griffin','fgiant','manticore','wyvern','hydra'], tier:3 },
 ];
 
 // Kingdom market specialties — multipliers per category
@@ -760,14 +761,14 @@ const MONSTERS = {
 const DRAGON = { name:"Pyraxis the Dragon", icon:'🐉', img:'sprites/dragon.png', hp:120, atk:30, def:36, xp:0, glo:0, ghi:0 };
 
 const WEAPONS = [
-  { id:'dagger',    name:'Rusty Dagger',    icon:'🗡️', atk:0, cost:0   },
-  { id:'sword',     name:'Short Sword',     icon:'⚔️', atk:1, cost:66  },
-  { id:'axe',       name:'Battle Axe',      icon:'🪓', atk:2, cost:144 },
-  { id:'spear',     name:'Spear',           icon:'🔱', atk:3, cost:216 },
-  { id:'hammer',    name:'War Hammer',      icon:'🔨', atk:4, cost:294 },
-  { id:'mace',      name:'Mace',            icon:'🪃', atk:5, cost:360 },
-  { id:'longsword', name:'Longsword',        icon:'🗡️', atk:6, cost:426 },
-  { id:'enchanted', name:'Enchanted Blade', icon:'✨', atk:8, cost:564 },
+  { id:'dagger',    name:'Rusty Dagger',    icon:'🗡️', img:'weapons/rusty_dagger.png',     atk:0, cost:0   },
+  { id:'sword',     name:'Short Sword',     icon:'⚔️', img:'weapons/short_sword.png',      atk:1, cost:66  },
+  { id:'axe',       name:'Battle Axe',      icon:'🪓', img:'weapons/battle_axe.png',       atk:2, cost:144 },
+  { id:'spear',     name:'Spear',           icon:'🔱', img:'weapons/spear.png',            atk:3, cost:216 },
+  { id:'hammer',    name:'War Hammer',      icon:'🔨', img:'weapons/war_hammer.png',       atk:4, cost:294 },
+  { id:'mace',      name:'Mace',            icon:'🪃', img:'weapons/mace.png',             atk:5, cost:360 },
+  { id:'longsword', name:'Longsword',       icon:'🗡️', img:'weapons/longsword.png',        atk:6, cost:426 },
+  { id:'enchanted', name:'Enchanted Blade', icon:'✨', img:'weapons/enchanted_blade.png',  atk:8, cost:564 },
 ];
 const ARMORS = [
   { id:'clothes', name:'Peasant Clothes', icon:'👕', def:0,  cost:0   },
@@ -779,12 +780,12 @@ const ARMORS = [
 const MAX_POTIONS = 6;
 const POTION_HEAL = 42;
 const POTIONS = [
-  { id:'heal',     name:'Healing Potion',      icon:'🧪', desc:`Restore ${POTION_HEAL} HP`,   cost:30 },
-  { id:'regen',    name:'Regeneration Potion', icon:'💚', desc:'+3 HP/turn for 6 turns',       cost:36 },
-  { id:'stam',     name:'Stamina Potion',       icon:'⚡', desc:'Restore full stamina',         cost:24 },
-  { id:'strength', name:'Strength Potion',      icon:'💪', desc:'+1 die for 6 turns',           cost:42 },
-  { id:'invis',    name:'Invisibility Potion',  icon:'👻', desc:'Enemy misses next turn',        cost:48 },
-  { id:'speed',    name:'Speed Potion',          icon:'💨', desc:'Attack twice next turn',        cost:54 },
+  { id:'heal',     name:'Healing Potion',      icon:'🧪', img:'potions/healing.png',       desc:`Restore ${POTION_HEAL} HP`,   cost:30 },
+  { id:'regen',    name:'Regeneration Potion', icon:'💚', img:'potions/regeneration.png',  desc:'+3 HP/turn for 6 turns',       cost:36 },
+  { id:'stam',     name:'Stamina Potion',      icon:'⚡', img:'potions/stamina.png',        desc:'Restore full stamina',         cost:24 },
+  { id:'strength', name:'Strength Potion',     icon:'💪', img:'potions/strength.png',      desc:'+1 die for 6 turns',           cost:42 },
+  { id:'invis',    name:'Invisibility Potion', icon:'👻', img:'potions/invisibility.png',  desc:'Enemy misses next turn',        cost:48 },
+  { id:'speed',    name:'Speed Potion',        icon:'💨', img:'potions/speed.png',          desc:'Attack twice next turn',        cost:54 },
 ];
 
 // Stamina constants — all multiples of 6 (one die = 6)
@@ -1022,10 +1023,12 @@ function syncKingdom() {
   const resDice = nDice(G.resilience);
   eid('p-res').textContent  = `+${resDice} ${resDice === 1 ? 'die' : 'dice'}/turn`;
   eid('p-wpn').textContent  = G.weapon.name;
+  const wpnIco = eid('p-wpn-ico');
+  if (wpnIco) wpnIco.innerHTML = G.weapon.img ? `<img src="${G.weapon.img}" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : G.weapon.icon;
   const potEl = eid('p-pot');
   const ownedPots = POTIONS.filter(p => (G.potions[p.id] || 0) > 0);
   potEl.innerHTML = ownedPots.length
-    ? ownedPots.map(p => `<span style="color:var(--muted)">${p.icon} <span style="color:var(--text)">${p.name}</span> ×${G.potions[p.id]}</span>`).join('')
+    ? ownedPots.map(p => `<span style="color:var(--muted);display:flex;align-items:center;gap:5px">${p.img ? `<img src="${p.img}" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : p.icon} <span style="color:var(--text)">${p.name}</span> ×${G.potions[p.id]}</span>`).join('')
     : `<span style="color:var(--muted)">No potions</span>`;
   const cheapest = Math.min(...['combat','hp','resilience'].map(s => trainCost(s)));
   eid('p-xp').textContent   = G.xp;
@@ -1033,7 +1036,9 @@ function syncKingdom() {
   const canTrain = canAffordAnyTrain();
   const trainBtn = eid('btn-train');
   if (trainBtn) trainBtn.className = `btn ${canTrain ? 'btn-gold btn-ready' : 'btn-gray'}`;
-  const k = G.kingdom;
+  const k = KINGDOMS.find(kk => kk.id === G.kingdom.id) || G.kingdom;
+  const banner = eid('k-banner');
+  if (banner) { banner.src = k.banner; banner.alt = k.name; }
   eid('k-name').textContent = `${k.icon} ${k.name}`;
   eid('k-desc').textContent = k.desc;
   const seenHere = k.monsters.filter(m => G.monsterLog[m]);
@@ -1261,7 +1266,7 @@ function renderMItems() {
                       : worse  ? ' <span style="font-size: 12px;color:var(--muted)">↓ downgrade</span>' : '';
       if (owned) {
         html += `<div class="irow">
-          <div class="iico">${w.icon}</div>
+          <div class="iico">${w.img ? `<img src="${w.img}" style="width:32px;height:32px;object-fit:contain">` : w.icon}</div>
           <div class="iinf">
             <div class="inm">${w.name} <span class="badge">✓ Current</span></div>
             <div class="istat">${w.atk > 0 ? `+${w.atk} flat damage` : 'No damage bonus'}</div>
@@ -1275,7 +1280,7 @@ function renderMItems() {
             ? `<span class="icost" style="color:var(--muted)">Even</span>`
             : `<span class="icost" style="color:var(--gold)">${netCost}g${sale ? '<span class="sale"> SALE</span>' : ''}</span>`;
         html += `<div class="irow">
-          <div class="iico">${w.icon}</div>
+          <div class="iico">${w.img ? `<img src="${w.img}" style="width:32px;height:32px;object-fit:contain">` : w.icon}</div>
           <div class="iinf">
             <div class="inm">${w.name}${tag}</div>
             <div class="istat">${w.atk > 0 ? `+${w.atk} flat damage` : 'No damage bonus'}</div>
@@ -1331,7 +1336,7 @@ function renderMItems() {
       const afford = G.gold >= price && !full;
       const owned  = G.potions[p.id] || 0;
       return `<div class="irow">
-        <div class="iico">${p.icon}</div>
+        <div class="iico">${p.img ? `<img src="${p.img}" style="width:32px;height:32px;object-fit:contain">` : p.icon}</div>
         <div class="iinf">
           <div class="inm">${p.name}</div>
           <div class="istat">${p.desc} · Have: ${owned}</div>
