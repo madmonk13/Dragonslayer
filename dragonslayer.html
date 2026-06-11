@@ -772,6 +772,8 @@ const POTIONS = [
   { id:'regen',    name:'Regeneration Potion', icon:'💚', desc:'+3 HP/turn for 6 turns',       cost:36 },
   { id:'stam',     name:'Stamina Potion',       icon:'⚡', desc:'Restore full stamina',         cost:24 },
   { id:'strength', name:'Strength Potion',      icon:'💪', desc:'+1 die for 6 turns',           cost:42 },
+  { id:'invis',    name:'Invisibility Potion',  icon:'👻', desc:'Enemy misses next turn',        cost:48 },
+  { id:'speed',    name:'Speed Potion',          icon:'💨', desc:'Attack twice next turn',        cost:54 },
 ];
 
 // Stamina constants — all multiples of 6 (one die = 6)
@@ -809,8 +811,10 @@ function loadSave() {
     // patch missing fields added in later versions
     if (d.resilience          === undefined) d.resilience = 6;
     d.maxStam = d.baseCombat; // pool always equals combat stat
-    if (typeof d.potions === 'number') d.potions = { heal: d.potions, regen:0, stam:0, strength:0 };
-    if (!d.potions)    d.potions    = { heal:0, regen:0, stam:0, strength:0 };
+    if (typeof d.potions === 'number') d.potions = { heal: d.potions, regen:0, stam:0, strength:0, invis:0, speed:0 };
+    if (!d.potions)    d.potions    = { heal:0, regen:0, stam:0, strength:0, invis:0, speed:0 };
+    if (d.potions.invis  === undefined) d.potions.invis  = 0;
+    if (d.potions.speed  === undefined) d.potions.speed  = 0;
     if (!d.encountered) d.encountered = [];
     if (!d.trainCount)                       d.trainCount = {};
     if (d.trainCount.resilience === undefined) d.trainCount.resilience = 0;
@@ -844,7 +848,7 @@ function initState() {
     maxStam: 6, // always kept in sync with baseCombat
     trainCount: { combat:0, hp:0, resilience:0 },
     weapon: WEAPONS[0], armor: ARMORS[0],
-    potions: { heal:2, regen:0, stam:0, strength:0 },
+    potions: { heal:2, regen:0, stam:0, strength:0, invis:0, speed:0 },
     encountered: [],
     kingdom: KINGDOMS[0],
     log: [],
@@ -1113,16 +1117,21 @@ function doTravel(k, days) {
         ]
       );
       return; // travel completes inside bandit handlers
-    } else if (r < 0.70) {
+    } else if (r < 0.60) {
       const found = rand(12, 42);
       G.gold += found;
       showEvt('💰', 'Lucky Find!', `An abandoned chest on the road. +${found} gold!`);
       addLog(`💰 Found chest on the road! +${found} gold.`, 'lgld');
-    } else {
+    } else if (r < 0.80) {
       const gift = totalPotions() < MAX_POTIONS ? POTIONS[Math.floor(Math.random()*POTIONS.length)] : null;
       if (gift) { G.potions[gift.id]++; }
       showEvt('🧙', 'Traveling Merchant', gift ? `A kind merchant gifted you a ${gift.name}!` : 'A merchant tried to gift you a potion, but your bag is full!');
       addLog(gift ? `${gift.icon} A merchant gifted you a ${gift.name}.` : '🧙 Merchant gift declined — bag full.', 'lok');
+    } else {
+      const healed = G.maxHp - G.hp;
+      G.hp = G.maxHp;
+      showEvt('✝️', 'Traveling Priest', `A wandering priest lays hands on you, restoring your health fully.${healed > 0 ? ` (+${healed} HP)` : ' (You were already at full health.)'}`);
+      addLog(`✝️ A traveling priest restored you to full health.${healed > 0 ? ` +${healed} HP.` : ''}`, 'lok');
     }
   }
   finishTravel();
@@ -1359,6 +1368,9 @@ function beginCombat(mData, isBoss) {
     stamina:       G.baseCombat,
     regenTurns:    0,
     strengthTurns: 0,
+    invisTurns:    0,
+    speedTurns:    0,
+    speedSecond:   false,
     clog:    [],
   };
   // header
@@ -1726,6 +1738,50 @@ function _showCombatEndResult(ico, titleColor, title, rows, onContinue) {
   }
 }
 
+// First speed-strike display: shows only player attack + enemy defense (no enemy counter yet)
+function showSpeedFirstResult(pDice, pd, eDefDice, defeated) {
+  const paPool  = pDice.map((_,i) => _make3DDie(`dr-pa-${i}`)).join('');
+  const flatBlk = Math.floor(CB.m.def / 6);
+  const hasEDef = eDefDice && eDefDice.length > 0;
+  const edPool  = hasEDef
+    ? eDefDice.map((_,i) => _make3DDie(`dr-ed-${i}`)).join('')
+    : '<span style="font-size:13px;color:var(--muted)">—</span>';
+  const edLbl  = flatBlk > 0 ? `🛡️ Armor +${flatBlk} block` : '';
+  const wpnLbl = pWeaponBonus() > 0 ? `🗡️ +${pWeaponBonus()} weapon` : '';
+
+  eid('dice-zone').innerHTML = `<div class="cb-grid">
+    <div class="cb-box" id="cb-pa">
+      <div class="cb-hd">💨 Strike 1</div>
+      <div class="cb-pool">${paPool}</div>
+      ${wpnLbl ? `<div class="cb-lbl">${wpnLbl}</div>` : ''}
+    </div>
+    <div class="cb-box" id="cb-ed">
+      <div class="cb-hd">🛡️ Enemy Defense</div>
+      <div class="cb-pool" style="min-height:32px">${edPool}</div>
+      ${edLbl ? `<div class="cb-lbl">${edLbl}</div>` : ''}
+    </div>
+    <div class="cb-sum" id="cb-ps" style="opacity:.3">—</div>
+    <div class="cb-sum" id="cb-es" style="opacity:.3">${defeated ? '💀 Enemy Defeated' : '💨 Choose second action'}</div>
+  </div>`;
+  const bz = eid('breakdown-zone'); if(bz) bz.style.display='none';
+
+  pDice.forEach((_,i)   => { const d=eid(`dr-pa-${i}`); if(d) _startDieSpin(d); });
+  if (hasEDef) eDefDice.forEach((_,i) => { const d=eid(`dr-ed-${i}`); if(d) _startDieSpin(d); });
+
+  setTimeout(() => {
+    let delay = 0;
+    pDice.forEach((v,i)   => { const d=eid(`dr-pa-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
+    if (hasEDef) eDefDice.forEach((v,i) => { const d=eid(`dr-ed-${i}`); if(d) { _landDie3D(d,v,delay); delay+=60; }});
+    setTimeout(() => {
+      const ps = eid('cb-ps'), es = eid('cb-es');
+      if (ps) { ps.textContent=`${pd.dmg} damage dealt`; ps.style.opacity=''; ps.className='cb-sum'+(pd.dmg>0?' p-win':''); }
+      if (es) { es.style.opacity=''; es.className='cb-sum p-win'; }
+      const pa  = eid('cb-pa'); if(pa)  pa.className ='cb-box'+(pd.dmg>0?' win':'');
+      const ed_ = eid('cb-ed'); if(ed_) ed_.className='cb-box'+(pd.eDefBlock>0?' win':'');
+    }, SETTLE_MS);
+  }, ROLL_MS);
+}
+
 // pd = playerDetail object, ed = enemyDetail object (or null if defeated)
 function showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defeated) {
   _buildCombatGrid(pDice, blockDice, defeated ? [] : eDice, defeated ? [] : eDefDice, defeated);
@@ -1874,32 +1930,50 @@ function cAttack(diceCount) {
   if (CB.stamina < cost) { unlockCombat(); return; }
   staminaCost(cost);
 
-  // Enemy decides how many dice to commit to defense (based on current HP, before damage)
-  const totalEDice              = nDice(CB.m.atk);
+  // Enemy splits dice: some defend, some attack
+  const totalEDice             = nDice(CB.m.atk);
   const { atkDice: eAtkCount,
-          defDice: eDefCount }  = enemyDiceSplit(totalEDice, CB.mHp, CB.m.hp);
-  const eDefDice                = eDefCount > 0 ? rollArr(eDefCount) : [];
-  const eDefBlock               = eDefDice.reduce((a,b) => a+b, 0);
+          defDice: eDefCount } = enemyDiceSplit(totalEDice, CB.mHp, CB.m.hp);
+  const eDefDice               = eDefCount > 0 ? rollArr(eDefCount) : [];
+  const eDefBlock              = eDefDice.reduce((a,b) => a+b, 0);
 
   // Player rolls — enemy defense dice reduce player damage
   const pDice = rollArr(diceCount);
   const pd    = playerDetail(pDice, eDefBlock);
   CB.mHp -= pd.dmg;
+  const defeated = CB.mHp <= 0;
+
+  // ── Speed first strike: no enemy counter yet ──
+  if (CB.speedTurns > 0 && !CB.speedSecond) {
+    CB.speedSecond = true;
+    clog(`💨 First strike! ${pd.dmg > 0 ? pd.dmg + ' damage.' : 'Blocked.'} Choose your second action.`);
+    showSpeedFirstResult(pDice, pd, eDefDice, defeated);
+    if (defeated) { setTimeout(combatWin, 1475); return; }
+    // Don't tick per-turn effects yet; just sync bars after animation
+    setTimeout(() => { syncCombatBars(); }, ROLL_MS + SETTLE_MS);
+    setTimeout(unlockCombat, ROLL_MS + SETTLE_MS + 80);
+    return;
+  }
+
+  // ── Normal attack or speed second strike ──
+  const isSecondStrike = CB.speedSecond;
+  if (isSecondStrike) { CB.speedSecond = false; CB.speedTurns = 0; }
 
   // Enemy counter (if alive)
   // Unused combat dice (stamina-gated pool minus dice used for attack) go to block roll
-  const defeated = CB.mHp <= 0;
   let eDice = [], ed = null, eTaken = 0, diceBlock = 0, blockDice = [];
   if (!defeated) {
     const unusedDice = Math.max(0, availDicePreCost - diceCount);
     blockDice        = unusedDice > 0 ? rollArr(unusedDice) : [];
-    diceBlock        = blockDice.reduce((a, b) => a + b, 0);
-    eDice            = rollArr(eAtkCount);  // only the attack-allocated dice
+    diceBlock        = blockDice.reduce((a,b) => a+b, 0);
+    eDice            = rollArr(eAtkCount);
     ed               = enemyDetail(eDice, diceBlock);
     eTaken           = ed.dmg;
+    if (CB.invisTurns > 0) { eTaken = 0; clog('👻 Invisible! Enemy attack missed!'); }
     G.hp             = Math.max(0, G.hp - eTaken);
   }
 
+  if (isSecondStrike) clog(`💨 Second strike! ${pd.dmg > 0 ? pd.dmg + ' damage.' : 'Blocked.'}`);
   showDiceResult(pDice, pd, eDice, ed, blockDice, eDefDice, eTaken, defeated);
 
   setTimeout(() => {
@@ -1910,6 +1984,7 @@ function cAttack(diceCount) {
       CB.regenTurns--;
     }
     if (CB.strengthTurns > 0) { CB.strengthTurns--; syncCombatButtons(); }
+    if (CB.invisTurns    > 0) CB.invisTurns--;
     syncCombatBars();
     flash('bar-ehp', false);
     if (eTaken > 0) flash('bar-php', false);
@@ -1925,13 +2000,17 @@ function cDefend() {
   if (CB.over) return;
   lockCombat();
 
+  // If on speed second action, consuming it via defend clears the speed state
+  if (CB.speedSecond) { CB.speedSecond = false; CB.speedTurns = 0; }
+
   // Use all available dice for defense (minimum 1 at 0 stamina)
   const availDice = Math.max(1, Math.min(nDice(pCombat()), Math.floor(CB.stamina / 6)));
   const defDice   = rollArr(availDice);
   const diceBlock = defDice.reduce((a, b) => a + b, 0);
   const eDice     = rollArr(nDice(CB.m.atk));
   const ed        = enemyDetail(eDice, diceBlock);
-  const taken     = ed.dmg;
+  let taken       = ed.dmg;
+  if (CB.invisTurns > 0) { taken = 0; clog('👻 Invisible! Enemy attack missed!'); }
   G.hp = Math.max(0, G.hp - taken);
 
   showDefendResult(eDice, ed, defDice, taken);
@@ -1944,6 +2023,7 @@ function cDefend() {
       CB.regenTurns--;
     }
     if (CB.strengthTurns > 0) { CB.strengthTurns--; syncCombatButtons(); }
+    if (CB.invisTurns    > 0) CB.invisTurns--;
     syncCombatBars();
     flash('bar-st', true);
     if (taken > 0) flash('bar-php', false);
@@ -2002,6 +2082,14 @@ function cPotion(id) {
       CB.strengthTurns = 6;
       clog(`💪 Strength boost! +1 die for 6 turns.`);
       break;
+    case 'invis':
+      CB.invisTurns = 1;
+      clog(`👻 Invisible! Enemy will miss next turn.`);
+      break;
+    case 'speed':
+      CB.speedTurns = 1;
+      clog(`💨 Speed boost! Next attack hits twice.`);
+      break;
   }
 
   syncCombatBars();
@@ -2012,14 +2100,29 @@ function cFlee() {
   if (CB.over || CB.boss) return;
   lockCombat();
 
+  // Speed potion (first action): guaranteed escape
+  if (CB.speedTurns > 0 && !CB.speedSecond) {
+    CB.over = true;
+    CB.speedTurns = 0;
+    clog('💨 You dart away at lightning speed!');
+    addLog(`💨 Fled from the ${CB.m.name}.`, 'lbad');
+    eid('dice-zone').innerHTML = '<div class="cb-idle">💨 You escaped at lightning speed!</div>';
+    setTimeout(gotoKingdom, 1000);
+    return;
+  }
+
+  // Clear speed state if fleeing on second action
+  if (CB.speedSecond) { CB.speedSecond = false; CB.speedTurns = 0; }
+
   // All available dice go to defense; minimum 1 die even at 0 stamina
   const availDice   = Math.max(1, Math.min(nDice(pCombat()), Math.floor(CB.stamina / 6)));
   const fleeDefDice = rollArr(availDice);
   const diceBlock   = fleeDefDice.reduce((a,b) => a+b, 0);
 
-  const eDice = rollArr(nDice(CB.m.atk));
-  const ed    = enemyDetail(eDice, diceBlock);
-  const taken = ed.dmg;
+  const eDice    = rollArr(nDice(CB.m.atk));
+  const ed       = enemyDetail(eDice, diceBlock);
+  let taken      = ed.dmg;
+  if (CB.invisTurns > 0) { taken = 0; CB.invisTurns = 0; clog('👻 Invisible! You slip away unseen!'); }
 
   if (taken === 0) {
     CB.over = true;
