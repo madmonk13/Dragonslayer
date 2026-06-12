@@ -898,6 +898,9 @@ function loadSave() {
     if (!d.monsterLog) d.monsterLog = {};
     if (!d.trainCount)                       d.trainCount = {};
     if (d.trainCount.resilience === undefined) d.trainCount.resilience = 0;
+    // Always re-hydrate weapon & armor from live constants so stale atk/def values in saves don't persist
+    if (d.weapon) { const w = WEAPONS.find(x => x.id === d.weapon.id); if (w) d.weapon = w; }
+    if (d.armor)  { const a = ARMORS.find(x => x.id === d.armor.id);   if (a) d.armor  = a; }
     return d;
   } catch(e) { return null; }
 }
@@ -916,41 +919,36 @@ function monsterKingdomName(key) {
 }
 
 function renderMonsterTome() {
-  const sections = [];
-
-  KINGDOMS.forEach(k => {
-    const rows = k.monsters.map(key => {
-      const m = MONSTERS[key];
-      if (!m) return '';
-      const atkDice = nDice(m.atk), armor = Math.floor(m.def / 6);
-      const desc = MONSTER_DESCS[key] || '';
-      return `<div class="irow">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:14px;margin-bottom:2px">${m.name}</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.4">${desc}</div>
-          <div style="font-size:12px;color:var(--text)">⚔️ ${atkDice} ${atkDice===1?'die':'dice'} &nbsp;·&nbsp; 🛡️ ${armor > 0 ? armor+' armor' : 'no armor'}</div>
-        </div>
-        <div style="width:72px;height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${m.img ? `<img src="${m.img}" style="width:72px;height:72px;object-fit:contain">` : `<span style="font-size:28px">${m.icon}</span>`}</div>
-      </div>`;
-    }).join('');
-    sections.push(`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px;padding:0 2px">${k.name}</div><div class="card" style="padding:6px 10px">${rows}</div>`);
+  // Collect unique monster keys across all kingdoms, sorted by xp (power), hp as tiebreaker
+  const seen = new Set();
+  KINGDOMS.forEach(k => k.monsters.forEach(key => seen.add(key)));
+  const sorted = [...seen].sort((a, b) => {
+    const ma = MONSTERS[a], mb = MONSTERS[b];
+    return (ma.xp - mb.xp) || (ma.hp - mb.hp);
   });
 
-  // Pyraxis
-  const d = DRAGON, da = nDice(d.atk), dArmor = Math.floor(d.def / 6);
-  sections.push(`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px;padding:0 2px">Final Boss</div>
-  <div class="card" style="padding:6px 10px;border-color:rgba(220,80,50,.4)">
-    <div class="irow">
+  function monsterRow(key, m, isBoss) {
+    const atkDice = nDice(m.atk), armor = Math.floor(m.def / 6);
+    const desc = MONSTER_DESCS[key] || '';
+    const loc  = isBoss ? 'Ashenvale — Final Boss' : monsterKingdomName(key);
+    const nameStyle = isBoss ? 'font-weight:700;font-size:14px;margin-bottom:2px;color:#ff7f6a' : 'font-weight:700;font-size:14px;margin-bottom:2px';
+    return `<div class="irow">
       <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:14px;margin-bottom:2px;color:#ff7f6a">${d.name}</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.4">${MONSTER_DESCS['dragon']||''}</div>
-        <div style="font-size:12px;color:var(--text)">⚔️ ${da} ${da===1?'die':'dice'} &nbsp;·&nbsp; 🛡️ ${dArmor > 0 ? dArmor+' armor' : 'no armor'}</div>
+        <div style="${nameStyle}">${m.name}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.4">${desc}</div>
+        <div style="font-size:12px;color:var(--text);margin-bottom:2px">⚔️ ${atkDice} ${atkDice===1?'die':'dice'} &nbsp;·&nbsp; 🛡️ ${armor > 0 ? armor+' armor' : 'no armor'}</div>
+        <div style="font-size:11px;color:var(--muted)">📍 ${loc}</div>
       </div>
-      <div style="width:72px;height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${d.img ? `<img src="${d.img}" style="width:72px;height:72px;object-fit:contain">` : `<span style="font-size:28px">${d.icon}</span>`}</div>
-    </div>
-  </div>`);
+      <div style="width:72px;height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${m.img ? `<img src="${m.img}" style="width:72px;height:72px;object-fit:contain">` : `<span style="font-size:28px">${m.icon}</span>`}</div>
+    </div>`;
+  }
 
-  eid('tome-list').innerHTML = sections.join('');
+  const rows = sorted.map(key => monsterRow(key, MONSTERS[key], false));
+  // Pyraxis always last
+  const d = DRAGON;
+  rows.push(monsterRow('dragon', d, true));
+
+  eid('tome-list').innerHTML = `<div class="card" style="padding:6px 10px">${rows.join('')}</div>`;
 }
 
 function continueGame() {
