@@ -632,7 +632,7 @@ body {
 <!-- ══════════════ CONFIRM MODAL ══════════════ -->
 <div class="overlay" id="confirm-modal">
   <div class="modal" style="padding:20px;text-align:center">
-    <div style="font-size:42px;margin-bottom:10px" id="confirm-ico">⚔️</div>
+    <div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:10px" id="confirm-ico">⚔️</div>
     <h2 id="confirm-title" style="margin-bottom:10px">Are you sure?</h2>
     <p id="confirm-msg" style="font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.5"></p>
     <div style="display:flex;flex-direction:column;gap:8px">
@@ -1197,7 +1197,7 @@ function explore() {
 
 function challengeDragon() {
   showConfirm(
-    '🐉', 'Challenge Pyraxis?',
+    'sprites/dragon.png', 'Challenge Pyraxis?',
     'This is a fight to the death. Make sure you are prepared!',
     '⚔️ Charge!', 'btn-dragon',
     () => {
@@ -2499,7 +2499,12 @@ function showEvt(ico, title, desc, choices) {
   eid('evt-modal').classList.add('on');
 }
 function showConfirm(ico, title, msg, okLabel, okCls, onOk) {
-  eid('confirm-ico').textContent  = ico;
+  const icoEl = eid('confirm-ico');
+  if (ico && ico.startsWith('sprites/')) {
+    icoEl.innerHTML = `<img src="${ico}" style="width:80px;height:80px;object-fit:contain">`;
+  } else {
+    icoEl.innerHTML = `<span style="font-size:52px">${ico}</span>`;
+  }
   eid('confirm-title').textContent = title;
   eid('confirm-msg').textContent   = msg;
   const okBtn = eid('confirm-ok');
