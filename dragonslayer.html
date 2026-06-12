@@ -629,6 +629,19 @@ body {
 
 </div>
 
+<!-- ══════════════ CONFIRM MODAL ══════════════ -->
+<div class="overlay" id="confirm-modal">
+  <div class="modal" style="padding:20px;text-align:center">
+    <div style="font-size:42px;margin-bottom:10px" id="confirm-ico">⚔️</div>
+    <h2 id="confirm-title" style="margin-bottom:10px">Are you sure?</h2>
+    <p id="confirm-msg" style="font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.5"></p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-dragon" id="confirm-ok">Confirm</button>
+      <button class="btn btn-gray" onclick="closeConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ REST MODAL ══════════════ -->
 <div class="overlay" id="rest-modal" onclick="if(event.target===this)closeRestModal()">
   <div class="modal" style="padding:16px">
@@ -806,7 +819,7 @@ const MONSTER_DESCS = {
   fgiant:     'A towering ice giant that hurls boulders and laughs at swords.',
   manticore:  'A lion-bodied beast with a scorpion tail and a mane of venomous spines.',
   lich:       'An immortal sorcerer who embraced undeath in pursuit of forbidden power.',
-  wyvern:     'A two-legged dragon cousin with a barbed, poison-dripping tail.',
+  wyvern:     'A fearsome dragon cousin with a barbed, poison-dripping tail.',
   hydra:      'A multi-headed beast that grows back every head you manage to cut off.',
   imp:        'A small demonic creature — mischievous, malicious, and surprisingly quick.',
   troglodyte: 'A primitive cave-dweller armed with crude weapons and savage instinct.',
@@ -1183,9 +1196,15 @@ function explore() {
 }
 
 function challengeDragon() {
-  if (!confirm('⚔️ Challenge Pyraxis the Dragon?\n\nThis is a fight to the death. Make sure you are prepared!')) return;
-  addLog("🐉 You charge toward Pyraxis!", 'lbad');
-  beginCombat({ ...DRAGON, _key: 'dragon' }, true);
+  showConfirm(
+    '🐉', 'Challenge Pyraxis?',
+    'This is a fight to the death. Make sure you are prepared!',
+    '⚔️ Charge!', 'btn-dragon',
+    () => {
+      addLog("🐉 You charge toward Pyraxis!", 'lbad');
+      beginCombat({ ...DRAGON, _key: 'dragon' }, true);
+    }
+  );
 }
 
 // ═══════════════════════════════════════════════════
@@ -2479,6 +2498,20 @@ function showEvt(ico, title, desc, choices) {
   }
   eid('evt-modal').classList.add('on');
 }
+function showConfirm(ico, title, msg, okLabel, okCls, onOk) {
+  eid('confirm-ico').textContent  = ico;
+  eid('confirm-title').textContent = title;
+  eid('confirm-msg').textContent   = msg;
+  const okBtn = eid('confirm-ok');
+  okBtn.textContent  = okLabel;
+  okBtn.className    = `btn ${okCls || 'btn-dragon'}`;
+  okBtn.onclick      = () => { closeConfirm(); onOk(); };
+  eid('confirm-modal').classList.add('on');
+}
+function closeConfirm() {
+  eid('confirm-modal').classList.remove('on');
+}
+
 function closeEvt() {
   eid('evt-btn2').style.display = 'none';
   eid('evt-btn1').onclick = closeEvt;
