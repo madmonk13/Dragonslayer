@@ -432,7 +432,7 @@ body {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:8px;font-size: 13.5px;color:var(--muted)">
       <div style="display:flex;flex-direction:column;gap:5px">
         <span><span id="p-wpn-ico">🗡️</span> <span id="p-wpn" style="color:var(--text)">Rusty Dagger</span></span>
-        <span>🛡️ <span id="p-arm" style="color:var(--text)">Peasant Clothes</span></span>
+        <span><span id="p-arm-ico">🛡️</span> <span id="p-arm" style="color:var(--text)">Peasant Clothes</span></span>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
         <span>⚔️ <span id="p-cbt" style="color:var(--text)">6, 1 die</span></span>
@@ -682,7 +682,7 @@ body {
 <!-- ══════════════ EVENT MODAL ══════════════ -->
 <div class="overlay" id="evt-modal">
   <div class="modal" style="text-align:center">
-    <div style="font-size:42px;margin-bottom:7px" id="evt-ico">⭐</div>
+    <div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:7px" id="evt-ico">⭐</div>
     <h2 id="evt-title">Event!</h2>
     <p id="evt-desc">Something happened.</p>
     <div id="evt-btns" style="display:flex;flex-direction:column;gap:8px">
@@ -833,11 +833,11 @@ const WEAPONS = [
   { id:'enchanted', name:'Enchanted Blade', icon:'✨', img:'weapons/enchanted_blade.png',  atk:8, cost:564 },
 ];
 const ARMORS = [
-  { id:'clothes', name:'Peasant Clothes', icon:'👕', def:0,  cost:0   },
-  { id:'leather', name:'Leather Armor',   icon:'🥋', def:6,  cost:72  },
-  { id:'chain',   name:'Chainmail',       icon:'🔗', def:12, cost:174 },
-  { id:'plate',   name:'Plate Armor',     icon:'🦺', def:18, cost:342 },
-  { id:'dscale',  name:'Dragon Scale',    icon:'🐉', def:24, cost:684 },
+  { id:'clothes', name:'Peasant Clothes', icon:'👕', img:'armor/peasant_clothes.png', def:0,  cost:0   },
+  { id:'leather', name:'Leather Armor',   icon:'🥋', img:'armor/leather_armor.png',   def:6,  cost:72  },
+  { id:'chain',   name:'Chainmail',       icon:'🔗', img:'armor/chain_mail.png',       def:12, cost:174 },
+  { id:'plate',   name:'Plate Armor',     icon:'🦺', img:'armor/plate_armor.png',      def:18, cost:342 },
+  { id:'dscale',  name:'Dragon Scale',    icon:'🐉', img:'armor/dragon_armor.png',     def:24, cost:684 },
 ];
 const MAX_POTIONS = 6;
 const POTION_HEAL = 42;
@@ -1076,6 +1076,8 @@ function syncKingdom() {
   const cbtDice = nDice(G.baseCombat);
   eid('p-cbt').textContent = `${G.baseCombat}, ${cbtDice} ${cbtDice === 1 ? 'die' : 'dice'}`;
   eid('p-arm').textContent  = G.armor.name;
+  const armIco = eid('p-arm-ico');
+  if (armIco) armIco.innerHTML = G.armor.img ? `<img src="${G.armor.img}" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : '🛡️';
   const resDice = nDice(G.resilience);
   eid('p-res').textContent  = `+${resDice} ${resDice === 1 ? 'die' : 'dice'}/turn`;
   eid('p-wpn').textContent  = G.weapon.name;
@@ -1236,7 +1238,7 @@ function doTravel(k, days) {
       // Bandit ambush — always a bandit
       const mData = { ...MONSTERS.bandit, _key: 'bandit' };
       const goldLoss = Math.max(6, rand(6, 24));
-      showEvt('🦹', 'Bandit Ambush!',
+      showEvt('sprites/bandit.png', 'Bandit Ambush!',
         `A gang of bandits blocks the road to ${k.name}. Fight them off or hand over your gold.`,
         [
           { label: '⚔️ Fight!',        cls: 'btn-red',   fn: () => fightBandit(mData, goldLoss) },
@@ -1247,17 +1249,17 @@ function doTravel(k, days) {
     } else if (r < 0.60) {
       const found = rand(12, 42);
       G.gold += found;
-      showEvt('💰', 'Lucky Find!', `An abandoned chest on the road. +${found} gold!`);
+      showEvt('sprites/treasure.png', 'Lucky Find!', `An abandoned chest on the road. +${found} gold!`);
       addLog(`💰 Found chest on the road! +${found} gold.`, 'lgld');
     } else if (r < 0.80) {
       const gift = totalPotions() < MAX_POTIONS ? POTIONS[Math.floor(Math.random()*POTIONS.length)] : null;
       if (gift) { G.potions[gift.id]++; }
-      showEvt('🧙', 'Traveling Merchant', gift ? `A kind merchant gifted you a ${gift.name}!` : 'A merchant tried to gift you a potion, but your bag is full!');
+      showEvt('sprites/merchant.png', 'Traveling Merchant', gift ? `A kind merchant gifted you a ${gift.name}!` : 'A merchant tried to gift you a potion, but your bag is full!');
       addLog(gift ? `${gift.icon} A merchant gifted you a ${gift.name}.` : '🧙 Merchant gift declined — bag full.', 'lok');
     } else {
       const healed = G.maxHp - G.hp;
       G.hp = G.maxHp;
-      showEvt('✝️', 'Traveling Priest', `A wandering priest lays hands on you, restoring your health fully.${healed > 0 ? ` (+${healed} HP)` : ' (You were already at full health.)'}`);
+      showEvt('sprites/priest.png', 'Traveling Priest', `A wandering priest lays hands on you, restoring your health fully.${healed > 0 ? ` (+${healed} HP)` : ' (You were already at full health.)'}`);
       addLog(`✝️ A traveling priest restored you to full health.${healed > 0 ? ` +${healed} HP.` : ''}`, 'lok');
     }
   }
@@ -1322,7 +1324,7 @@ function renderMItems() {
                       : worse  ? ' <span style="font-size: 12px;color:var(--muted)">↓ downgrade</span>' : '';
       if (owned) {
         html += `<div class="irow">
-          <div class="iico">${w.img ? `<img src="${w.img}" style="width:32px;height:32px;object-fit:contain">` : w.icon}</div>
+          <div style="width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${w.img ? `<img src="${w.img}" style="width:48px;height:48px;object-fit:contain">` : w.icon}</div>
           <div class="iinf">
             <div class="inm">${w.name} <span class="badge">✓ Current</span></div>
             <div class="istat">${w.atk > 0 ? `+${w.atk} flat damage` : 'No damage bonus'}</div>
@@ -1336,7 +1338,7 @@ function renderMItems() {
             ? `<span class="icost" style="color:var(--muted)">Even</span>`
             : `<span class="icost" style="color:var(--gold)">${netCost}g${sale ? '<span class="sale"> SALE</span>' : ''}</span>`;
         html += `<div class="irow">
-          <div class="iico">${w.img ? `<img src="${w.img}" style="width:32px;height:32px;object-fit:contain">` : w.icon}</div>
+          <div style="width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${w.img ? `<img src="${w.img}" style="width:48px;height:48px;object-fit:contain">` : w.icon}</div>
           <div class="iinf">
             <div class="inm">${w.name}${tag}</div>
             <div class="istat">${w.atk > 0 ? `+${w.atk} flat damage` : 'No damage bonus'}</div>
@@ -1358,9 +1360,10 @@ function renderMItems() {
       const worse     = a.def < G.armor.def;
       const tag       = better ? ' <span style="font-size: 12px;color:var(--hp)">↑ upgrade</span>'
                       : worse  ? ' <span style="font-size: 12px;color:var(--muted)">↓ downgrade</span>' : '';
+      const armorIco = a.img ? `<img src="${a.img}" style="width:64px;height:64px;object-fit:contain">` : a.icon;
       if (owned) {
         html += `<div class="irow">
-          <div class="iico">${a.icon}</div>
+          <div style="width:64px;height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${armorIco}</div>
           <div class="iinf">
             <div class="inm">${a.name} <span class="badge">✓ Current</span></div>
             <div class="istat">blocks ${Math.floor(a.def/6)} dmg per hit</div>
@@ -1374,7 +1377,7 @@ function renderMItems() {
             ? `<span class="icost" style="color:var(--muted)">Even</span>`
             : `<span class="icost" style="color:var(--gold)">${netCost}g${sale ? '<span class="sale"> SALE</span>' : ''}</span>`;
         html += `<div class="irow">
-          <div class="iico">${a.icon}</div>
+          <div style="width:64px;height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${armorIco}</div>
           <div class="iinf">
             <div class="inm">${a.name}${tag}</div>
             <div class="istat">blocks ${Math.floor(a.def/6)} dmg per hit</div>
@@ -2452,7 +2455,12 @@ function closeJournal() { eid('journal-modal').classList.remove('on'); }
 
 // choices: optional array of {label, cls, fn} — if omitted, shows a single Continue button
 function showEvt(ico, title, desc, choices) {
-  eid('evt-ico').textContent   = ico;
+  const icoEl = eid('evt-ico');
+  if (ico && ico.startsWith('sprites/')) {
+    icoEl.innerHTML = `<img src="${ico}" style="width:80px;height:80px;object-fit:contain">`;
+  } else {
+    icoEl.innerHTML = `<span style="font-size:52px">${ico}</span>`;
+  }
   eid('evt-title').textContent = title;
   eid('evt-desc').textContent  = desc;
   const btn1 = eid('evt-btn1');
@@ -2505,7 +2513,9 @@ function winGame() {
     DRAGON.img,
     ...WEAPONS.map(w => w.img),
     ...POTIONS.map(p => p.img),
+    ...ARMORS.map(a => a.img),
     ...KINGDOMS.map(k => k.banner),
+    'sprites/bandit.png', 'sprites/merchant.png', 'sprites/priest.png', 'sprites/treasure.png',
   ];
   imgs.forEach(src => { if (src) { const i = new Image(); i.src = src; } });
 })();
