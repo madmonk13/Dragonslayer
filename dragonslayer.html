@@ -451,7 +451,7 @@ body {
     <div class="clabel">Current Kingdom</div>
     <div class="knm" id="k-name">Ashenvale</div>
     <div class="kdsc" id="k-desc">—</div>
-    <div class="kinf" id="k-mon-wrap">Monsters Encountered: <strong id="k-mon">—</strong></div>
+
   </div>
 
   <div id="pyraxis-warn" style="display:none;margin:10px 0 2px;padding:10px 14px;background:rgba(220,50,30,.15);border:1px solid rgba(220,80,50,.4);border-radius:8px;font-size:13px;color:#ff7f6a;text-align:center;font-weight:600">
@@ -1041,14 +1041,7 @@ function syncKingdom() {
   if (banner) { banner.src = k.banner; banner.alt = k.name; }
   eid('k-name').textContent = k.name;
   eid('k-desc').textContent = k.desc;
-  const seenHere = k.monsters.filter(m => G.monsterLog[m]);
-  const monWrap  = eid('k-mon-wrap');
-  if (seenHere.length > 0) {
-    monWrap.style.display = '';
-    eid('k-mon').textContent = seenHere.map(m => MONSTERS[m].name).join(', ');
-  } else {
-    monWrap.style.display = 'none';
-  }
+
   eid('btn-dragon').style.display = k.id === 'ashenvale' ? '' : 'none';
   const warnEl = eid('pyraxis-warn');
   if (warnEl) {
