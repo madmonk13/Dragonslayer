@@ -703,11 +703,11 @@ body {
 
 const KINGDOMS = [
   { id:'ashenvale', name:'Ashenvale',    icon:'🏰', banner:'kingdom_banners/ashenvale.png',    desc:'Your home kingdom. Pyraxis the Dragon lairs here.',             monsters:['rat','bat','kobold','boar','goblin','wolf'],                        tier:1 },
-  { id:'thornwood', name:'Thornwood',    icon:'🌲', banner:'kingdom_banners/thornwood.png',    desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['boar','giantrat','wolf','thief','spider','orc','harpy'],           tier:2 },
-  { id:'ironforge', name:'Ironforge',    icon:'⚒️', banner:'kingdom_banners/ironforge.png',   desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['bandit','orc','barbarian','troll'],                                 tier:2 },
-  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', banner:'kingdom_banners/crimson_keep.png', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['skeleton','spider','ghoul','zombie','banshee','wight','dknight','manticore','lich'], tier:3 },
+  { id:'thornwood', name:'Thornwood',    icon:'🌲', banner:'kingdom_banners/thornwood.png',    desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['boar','giantrat','wolf','thief','spider','orc','harpy','werewolf'],           tier:2 },
+  { id:'ironforge', name:'Ironforge',    icon:'⚒️', banner:'kingdom_banners/ironforge.png',   desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['bandit','orc','barbarian','troll','troglodyte','basilisk','minotaur'],        tier:2 },
+  { id:'crimson',   name:'Crimson Keep', icon:'🗝️', banner:'kingdom_banners/crimson_keep.png', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['imp','skeleton','spider','ghoul','zombie','gargoyle','banshee','wight','dknight','manticore','lich'], tier:3 },
   { id:'saltmere',  name:'Saltmere',     icon:'⚓', banner:'kingdom_banners/saltmere.png',    desc:'A port city plagued by pirates and sea monsters.',              monsters:['thief','pirate','seatroll','scorpion','hydra'],                    tier:2 },
-  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', banner:'kingdom_banners/frostpeak.png',   desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','scorpion','barbarian','griffin','fgiant','manticore','wyvern','hydra'], tier:3 },
+  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', banner:'kingdom_banners/frostpeak.png',   desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','scorpion','barbarian','polarbear','griffin','fgiant','cyclops','manticore','wyvern','hydra'], tier:3 },
 ];
 
 // Kingdom market specialties — multipliers per category
@@ -762,6 +762,14 @@ const MONSTERS = {
   lich:      { name:'Lich',          icon:'🧙', img:'sprites/lich.png',         hp:66,  atk:24, def:12, xp:78, glo:54, ghi:108 },
   wyvern:    { name:'Wyvern',        icon:'🐲', img:'sprites/wyvern.png',       hp:66,  atk:24, def:18, xp:96, glo:66, ghi:138 },
   hydra:     { name:'Hydra',         icon:'🐍', img:'sprites/hydra.png',        hp:72,  atk:24, def:24, xp:90, glo:60, ghi:120 },
+  imp:        { name:'Imp',           icon:'😈', img:'sprites/imp.png',           hp:18,  atk:12, def:6,  xp:24, glo:12, ghi:30  },
+  troglodyte: { name:'Troglodyte',   icon:'🪨', img:'sprites/troglodyte.png',    hp:24,  atk:12, def:6,  xp:30, glo:12, ghi:30  },
+  werewolf:   { name:'Werewolf',     icon:'🐺', img:'sprites/werewolf.png',      hp:36,  atk:18, def:6,  xp:48, glo:24, ghi:54  },
+  gargoyle:   { name:'Gargoyle',     icon:'🗿', img:'sprites/gargoyle.png',      hp:36,  atk:12, def:18, xp:42, glo:24, ghi:48  },
+  basilisk:   { name:'Basilisk',     icon:'🦎', img:'sprites/basilisk.png',      hp:42,  atk:18, def:18, xp:54, glo:36, ghi:72  },
+  polarbear:  { name:'Polar Bear',   icon:'🐻‍❄️', img:'sprites/polar_bear.png',  hp:42,  atk:18, def:12, xp:54, glo:30, ghi:60  },
+  minotaur:   { name:'Minotaur',     icon:'🐂', img:'sprites/minotaur.png',      hp:54,  atk:24, def:12, xp:66, glo:48, ghi:96  },
+  cyclops:    { name:'Cyclops',      icon:'👁️', img:'sprites/cyclops.png',       hp:60,  atk:24, def:12, xp:72, glo:54, ghi:108 },
 };
 const DRAGON = { name:"Pyraxis the Dragon", icon:'🐉', img:'sprites/dragon.png', hp:120, atk:30, def:36, xp:0, glo:0, ghi:0 };
 
