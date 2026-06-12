@@ -342,7 +342,7 @@ body {
       <button class="btn btn-gold" id="btn-continue-save" style="width:100%;padding:16px;font-size:17px;display:none" onclick="continueGame()">▶ Continue</button>
       <button class="btn btn-red"  id="btn-new-game"      style="width:100%;padding:16px;font-size:17px" onclick="newGame()">⚔️ Begin Quest</button>
       <button class="btn btn-gray" style="width:100%" onclick="show('s-tutorial')">📖 How to Fight</button>
-      <button class="btn btn-gray" id="btn-combat-log" style="width:100%;display:none" onclick="renderCombatLog();show('s-combatlog')" hidden>📕 Combat Log</button>
+      <button class="btn btn-gray" style="width:100%" onclick="renderMonsterTome();show('s-tome')">📜 Monster Tome</button>
     </div>
   </div>
 </div>
@@ -399,13 +399,13 @@ body {
 </div>
 
 <!-- ══════════════ COMBAT LOG ══════════════ -->
-<div id="s-combatlog" class="screen">
+<div id="s-tome" class="screen">
   <div class="backrow">
     <button class="btn btn-gray backbtn" onclick="show('s-title')">← Back</button>
-    <h2>📕 Combat Log</h2>
+    <h2>📜 Monster Tome</h2>
     <div class="sp"></div>
   </div>
-  <div id="combatlog-list"></div>
+  <div id="tome-list"></div>
   <button class="btn btn-gray" style="margin-top:4px" onclick="show('s-title')">← Back to Title</button>
 </div>
 
@@ -704,10 +704,10 @@ body {
 const KINGDOMS = [
   { id:'ashenvale', name:'Ashenvale',    icon:'🏰', banner:'kingdom_banners/ashenvale.png',    desc:'Your home kingdom. Pyraxis the Dragon lairs here.',             monsters:['rat','bat','kobold','boar','goblin','wolf'],                        tier:1 },
   { id:'thornwood', name:'Thornwood',    icon:'🌲', banner:'kingdom_banners/thornwood.png',    desc:'A dense forest kingdom with lurking bandits and beasts.',        monsters:['boar','giantrat','wolf','thief','spider','orc','harpy','werewolf'],           tier:2 },
-  { id:'ironforge', name:'Ironforge',    icon:'⚒️', banner:'kingdom_banners/ironforge.png',   desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['bandit','orc','barbarian','troll','troglodyte','basilisk','minotaur'],        tier:2 },
+  { id:'ironforge', name:'Ironforge',    icon:'⚒️', banner:'kingdom_banners/ironforge.png',   desc:'Dwarven craftsmen forge the finest weapons in the realm.',      monsters:['bandit','orc','barbarian','troll','troglodyte','scorpion','basilisk','minotaur'],        tier:2 },
   { id:'crimson',   name:'Crimson Keep', icon:'🗝️', banner:'kingdom_banners/crimson_keep.png', desc:'A dark fortress of undead lords. Danger and riches abound.',    monsters:['imp','skeleton','spider','ghoul','zombie','gargoyle','banshee','wight','dknight','manticore','lich'], tier:3 },
-  { id:'saltmere',  name:'Saltmere',     icon:'⚓', banner:'kingdom_banners/saltmere.png',    desc:'A port city plagued by pirates and sea monsters.',              monsters:['thief','pirate','seatroll','scorpion','hydra'],                    tier:2 },
-  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', banner:'kingdom_banners/frostpeak.png',   desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','scorpion','barbarian','polarbear','griffin','fgiant','cyclops','manticore','wyvern','hydra'], tier:3 },
+  { id:'saltmere',  name:'Saltmere',     icon:'⚓', banner:'kingdom_banners/saltmere.png',    desc:'A port city plagued by pirates and sea monsters.',              monsters:['thief','pirate','skeleton','zombie','giantcrab','seatroll','siren','hydra','kraken'], tier:2 },
+  { id:'frostpeak', name:'Frostpeak',    icon:'🏔️', banner:'kingdom_banners/frostpeak.png',   desc:'A frozen citadel at the roof of the world. Extreme danger, extreme loot.', monsters:['harpy','icewolf','barbarian','polarbear','griffin','fgiant','cyclops','manticore','wyvern','hydra'], tier:3 },
 ];
 
 // Kingdom market specialties — multipliers per category
@@ -770,8 +770,57 @@ const MONSTERS = {
   polarbear:  { name:'Polar Bear',   icon:'🐻‍❄️', img:'sprites/polar_bear.png',  hp:42,  atk:18, def:12, xp:54, glo:30, ghi:60  },
   minotaur:   { name:'Minotaur',     icon:'🐂', img:'sprites/minotaur.png',      hp:54,  atk:24, def:12, xp:66, glo:48, ghi:96  },
   cyclops:    { name:'Cyclops',      icon:'👁️', img:'sprites/cyclops.png',       hp:60,  atk:24, def:12, xp:72, glo:54, ghi:108 },
+  giantcrab:  { name:'Giant Crab',   icon:'🦀', img:'sprites/giant_crab.png',    hp:30,  atk:12, def:18, xp:36, glo:18, ghi:42  },
+  siren:      { name:'Siren',        icon:'🧜', img:'sprites/siren.png',          hp:30,  atk:18, def:6,  xp:42, glo:24, ghi:48  },
+  kraken:     { name:'Kraken',       icon:'🐙', img:'sprites/kraken.png',         hp:72,  atk:24, def:18, xp:90, glo:60, ghi:126 },
 };
 const DRAGON = { name:"Pyraxis the Dragon", icon:'🐉', img:'sprites/dragon.png', hp:120, atk:30, def:36, xp:0, glo:0, ghi:0 };
+
+const MONSTER_DESCS = {
+  rat:        'Common vermin — weak alone but bold when cornered.',
+  bat:        'A cave-dwelling creature with a quick, venomous bite.',
+  kobold:     'A cunning reptilian scavenger that fights dirty and flees fast.',
+  boar:       'A thick-skinned wild pig with a vicious lowered-head charge.',
+  goblin:     'A small but aggressive creature with a taste for ambushes.',
+  wolf:       'A pack hunter with razor-sharp fangs and relentless stamina.',
+  giantrat:   'An oversized rat emboldened by size and a constant hunger.',
+  giantbat:   'A massive bat that swoops silently from the dark.',
+  bandit:     'A hardened outlaw who preys on travelers with ruthless efficiency.',
+  thief:      'A nimble cutpurse who strikes before you see him coming.',
+  spider:     'A web-spinning predator with paralytic venom and armored hide.',
+  skeleton:   'Risen bones animated by dark magic — feel no pain, know no fear.',
+  harpy:      'A winged, screaming predator that dives without warning from above.',
+  orc:        'A brutish warrior born for battle and bred to love it.',
+  ghoul:      'A flesh-eating undead creature whose claws carry a paralyzing curse.',
+  pirate:     'A seaborne bandit with a blade and absolutely nothing to lose.',
+  icewolf:    'A dire wolf bred in blizzard conditions, its fur hardened by frost.',
+  zombie:     'A shambling corpse — slow, relentless, and utterly without mercy.',
+  seatroll:   'A grotesque amphibious troll that hauls sailors beneath the waves.',
+  barbarian:  'A ferocious raider from the northern wilds, all rage and muscle.',
+  scorpion:   'A giant venomous arachnid with crushing claws and a lethal sting.',
+  troll:      'A massive cave brute that shrugs off wounds and keeps swinging.',
+  dknight:    'A fallen champion reborn in shadow and cursed steel.',
+  banshee:    'A wailing spirit whose scream drains the will to keep fighting.',
+  wight:      'An ancient undead warrior bound by necromantic will to guard forever.',
+  griffin:    'A proud winged predator — half eagle, half lion, all lethal.',
+  fgiant:     'A towering ice giant that hurls boulders and laughs at swords.',
+  manticore:  'A lion-bodied beast with a scorpion tail and a mane of venomous spines.',
+  lich:       'An immortal sorcerer who embraced undeath in pursuit of forbidden power.',
+  wyvern:     'A two-legged dragon cousin with a barbed, poison-dripping tail.',
+  hydra:      'A multi-headed beast that grows back every head you manage to cut off.',
+  imp:        'A small demonic creature — mischievous, malicious, and surprisingly quick.',
+  troglodyte: 'A primitive cave-dweller armed with crude weapons and savage instinct.',
+  werewolf:   'A cursed man-beast of terrible speed and ferocious, unrelenting strength.',
+  gargoyle:   'A stone guardian that awakens to crush intruders with its iron hide.',
+  basilisk:   'An armored cavern serpent whose gaze is said to turn flesh to stone.',
+  polarbear:  'A massive arctic predator with the raw strength to shatter plate armor.',
+  minotaur:   'A half-man, half-bull terror that prowls underground labyrinths for prey.',
+  cyclops:    'A one-eyed giant of enormous strength and crude, devastating cunning.',
+  giantcrab:  'A heavily armored coastal scavenger with crushing claws and near-impenetrable shell.',
+  siren:      'A hauntingly beautiful sea creature whose song disarms sailors before she strikes.',
+  kraken:     'A colossal tentacled terror from the abyss — the most feared beast in any ocean.',
+  dragon:     'An ancient fire dragon who demands sacrifice and hoards the kingdom\'s wealth. Slay him before Day 30.',
+};
 
 const WEAPONS = [
   { id:'dagger',    name:'Rusty Dagger',    icon:'🗡️', img:'weapons/rusty_dagger.png',     atk:0, cost:0   },
@@ -857,52 +906,51 @@ function syncTitle() {
   const hasSave = !!localStorage.getItem(SAVE_KEY);
   const contBtn = eid('btn-continue-save');
   const newBtn  = eid('btn-new-game');
-  const logBtn  = eid('btn-combat-log');
   if (contBtn) contBtn.style.display = hasSave ? '' : 'none';
   if (newBtn)  newBtn.textContent    = hasSave ? '🗡️ New Game' : '⚔️ Begin Quest';
-  // Combat Log hidden for now
-  // if (logBtn) { ... }
 }
 
-function monsterKingdomNames(key) {
+function monsterKingdomName(key) {
+  if (key === 'dragon') return 'Ashenvale — Final Boss';
   return KINGDOMS.filter(k => k.monsters.includes(key)).map(k => k.name).join(', ') || '—';
 }
 
-function renderCombatLog() {
-  // Use live G.monsterLog if in-game, otherwise load from save
-  let log = (G && G.monsterLog) ? G.monsterLog : {};
-  if (!Object.keys(log).length) {
-    try { const d = JSON.parse(localStorage.getItem(SAVE_KEY)); if (d && d.monsterLog) log = d.monsterLog; } catch(e) {}
-  }
+function renderMonsterTome() {
+  const sections = [];
 
-  const keys = Object.keys(log);
-  if (!keys.length) {
-    eid('combatlog-list').innerHTML = '<div class="card" style="text-align:center;color:var(--muted);font-size:14px">No monsters encountered yet.</div>';
-    return;
-  }
+  KINGDOMS.forEach(k => {
+    const rows = k.monsters.map(key => {
+      const m = MONSTERS[key];
+      if (!m) return '';
+      const atkDice = nDice(m.atk), armor = Math.floor(m.def / 6);
+      const desc = MONSTER_DESCS[key] || '';
+      return `<div class="irow">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px;margin-bottom:2px">${m.name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.4">${desc}</div>
+          <div style="font-size:12px;color:var(--text)">⚔️ ${atkDice} ${atkDice===1?'die':'dice'} &nbsp;·&nbsp; 🛡️ ${armor > 0 ? armor+' armor' : 'no armor'}</div>
+        </div>
+        <div style="width:72px;height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${m.img ? `<img src="${m.img}" style="width:72px;height:72px;object-fit:contain">` : `<span style="font-size:28px">${m.icon}</span>`}</div>
+      </div>`;
+    }).join('');
+    sections.push(`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px;padding:0 2px">${k.name}</div><div class="card" style="padding:6px 10px">${rows}</div>`);
+  });
 
-  const rows = keys.map(k => {
-    const m   = MONSTERS[k] || (k === 'dragon' ? DRAGON : null);
-    if (!m) return '';
-    const entry  = log[k];
-    const dice   = Math.floor(m.atk / 6);
-    const armor  = Math.floor(m.def / 6);
-    const loc    = k === 'dragon' ? 'Final Boss' : monsterKingdomNames(k);
-    return `<div class="irow">
-      <div class="iico" style="font-size:22px">${m.img ? `<img src="${m.img}" style="width:32px;height:32px;object-fit:contain">` : m.icon}</div>
-      <div class="iinf">
-        <div class="inm">${m.name}</div>
-        <div class="istat">${dice}d atk · ${armor > 0 ? armor + ' armor' : 'no armor'} · ${loc}</div>
+  // Pyraxis
+  const d = DRAGON, da = nDice(d.atk), dArmor = Math.floor(d.def / 6);
+  sections.push(`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px;padding:0 2px">Final Boss</div>
+  <div class="card" style="padding:6px 10px;border-color:rgba(220,80,50,.4)">
+    <div class="irow">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:14px;margin-bottom:2px;color:#ff7f6a">${d.name}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.4">${MONSTER_DESCS['dragon']||''}</div>
+        <div style="font-size:12px;color:var(--text)">⚔️ ${da} ${da===1?'die':'dice'} &nbsp;·&nbsp; 🛡️ ${dArmor > 0 ? dArmor+' armor' : 'no armor'}</div>
       </div>
-      <div style="text-align:right;font-size:12px;line-height:1.7;color:var(--muted);white-space:nowrap">
-        <div>Seen <strong style="color:var(--text)">${entry.seen}</strong></div>
-        <div style="color:var(--hp)">W <strong>${entry.wins}</strong></div>
-        <div style="color:var(--accent)">L <strong>${entry.losses}</strong></div>
-      </div>
-    </div>`;
-  }).join('');
+      <div style="width:72px;height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${d.img ? `<img src="${d.img}" style="width:72px;height:72px;object-fit:contain">` : `<span style="font-size:28px">${d.icon}</span>`}</div>
+    </div>
+  </div>`);
 
-  eid('combatlog-list').innerHTML = `<div class="card">${rows}</div>`;
+  eid('tome-list').innerHTML = sections.join('');
 }
 
 function continueGame() {
