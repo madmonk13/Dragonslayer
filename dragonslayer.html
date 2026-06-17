@@ -413,7 +413,14 @@ body {
 <div id="s-kingdom" class="screen">
 
   <div class="pills">
-    <div class="pill"><span class="ico">📅</span><div><div class="lbl">Day</div><div class="val vday" id="p-day">1</div></div></div>
+    <div class="pill" style="gap:8px">
+      <svg id="sky-widget" width="44" height="26" viewBox="0 0 44 26" style="flex-shrink:0;border-radius:4px;overflow:visible">
+        <rect id="sky-bg" width="44" height="26" rx="4" fill="#3a7fd4"/>
+        <path d="M 1 26 A 21 21 0 0 1 43 26" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.8"/>
+        <circle id="sky-body" cx="22" cy="5" r="4.5" fill="#FFD700"/>
+      </svg>
+      <div><div class="lbl" id="p-day-lbl">Day 1</div><div style="font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.2" id="p-time">6:00 AM</div></div>
+    </div>
     <div class="pill"><span class="ico">💰</span><div><div class="lbl">Gold</div><div class="val vgold" id="p-gold">100</div></div></div>
     <div class="pill pill-journal" onclick="openJournal()" style="cursor:pointer"><span class="ico">📖</span><div><div class="lbl">Journal</div></div></div>
     <div class="pill" style="grid-column:span 3">
@@ -647,23 +654,37 @@ body {
   <div class="modal" style="padding:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <h2 style="margin:0">😴 Rest</h2>
-      <button class="btn btn-gray" style="padding:4px 12px;font-size: 14px;flex-shrink:0;width:auto" onclick="closeRestModal()">✕</button>
+      <button class="btn btn-gray" style="padding:4px 12px;font-size:14px;flex-shrink:0;width:auto" onclick="closeRestModal()">✕</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;flex-direction:column;gap:12px">
       <div class="cb-box" style="align-items:flex-start;gap:6px">
         <div style="font-size:15px;font-weight:700">🏨 Inn</div>
-        <div style="font-size: 13px;color:var(--muted)">Room &amp; meal included. Fully restores HP.</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:4px">
-          <span style="font-size: 14px;color:var(--gold);font-weight:700" id="rest-inn-cost">—</span>
-          <button class="btn btn-green" id="btn-rest-inn" style="width:auto;padding:6px 14px;font-size: 14px" onclick="restInn()">Rest at Inn</button>
+        <div style="font-size:13px;color:var(--muted)">Room &amp; board included. Cost: <span id="rest-inn-cost" style="color:var(--gold);font-weight:700">—</span></div>
+        <div style="display:flex;gap:8px;margin-top:4px;width:100%">
+          <button class="btn btn-green rest-dur-btn" id="btn-inn-4" style="flex:1;padding:10px 4px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px" onclick="restInnFor(4)">
+            <span style="font-weight:700">4 hrs</span><span style="font-size:11px;opacity:0.8">+40% HP</span>
+          </button>
+          <button class="btn btn-green rest-dur-btn" id="btn-inn-6" style="flex:1;padding:10px 4px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px" onclick="restInnFor(6)">
+            <span style="font-weight:700">6 hrs</span><span style="font-size:11px;opacity:0.8">+65% HP</span>
+          </button>
+          <button class="btn btn-green rest-dur-btn" id="btn-inn-8" style="flex:1;padding:10px 4px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px" onclick="restInnFor(8)">
+            <span style="font-weight:700">8 hrs</span><span style="font-size:11px;opacity:0.8">Full HP</span>
+          </button>
         </div>
       </div>
       <div class="cb-box" style="align-items:flex-start;gap:6px">
         <div style="font-size:15px;font-weight:700">🌿 Countryside</div>
-        <div style="font-size: 13px;color:var(--muted)">Hunt for a meal. Restores half HP. Risk of encounter.</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:4px">
-          <span style="font-size: 13px;color:var(--muted)">Free</span>
-          <button class="btn btn-gray" style="width:auto;padding:6px 14px;font-size: 14px" onclick="restCountryside()">Rest Outdoors</button>
+        <div style="font-size:13px;color:var(--muted)">Hunt for a meal. Risk of encounter. <span id="rest-enc-risk" style="color:var(--accent);font-weight:600"></span></div>
+        <div style="display:flex;gap:8px;margin-top:4px;width:100%">
+          <button class="btn btn-gray rest-dur-btn" style="flex:1;padding:10px 4px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px" onclick="restOutdoorFor(4)">
+            <span style="font-weight:700">4 hrs</span><span style="font-size:11px;opacity:0.8">+25% HP</span>
+          </button>
+          <button class="btn btn-gray rest-dur-btn" style="flex:1;padding:10px 4px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px" onclick="restOutdoorFor(6)">
+            <span style="font-weight:700">6 hrs</span><span style="font-size:11px;opacity:0.8">+50% HP</span>
+          </button>
+          <button class="btn btn-gray rest-dur-btn" style="flex:1;padding:10px 4px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px" onclick="restOutdoorFor(8)">
+            <span style="font-weight:700">8 hrs</span><span style="font-size:11px;opacity:0.8">+75% HP</span>
+          </button>
         </div>
       </div>
     </div>
@@ -911,6 +932,7 @@ function loadSave() {
     if (!d.monsterLog) d.monsterLog = {};
     if (!d.trainCount)                       d.trainCount = {};
     if (d.trainCount.resilience === undefined) d.trainCount.resilience = 0;
+    if (d.time === undefined) d.time = 360;
     // Always re-hydrate weapon & armor from live constants so stale atk/def values in saves don't persist
     if (d.weapon) { const w = WEAPONS.find(x => x.id === d.weapon.id); if (w) d.weapon = w; }
     if (d.armor)  { const a = ARMORS.find(x => x.id === d.armor.id);   if (a) d.armor  = a; }
@@ -974,7 +996,7 @@ function continueGame() {
 
 function initState() {
   G = {
-    day: 1, gold: 96,
+    day: 1, time: 360, gold: 96,
     hp: 36, maxHp: 36,
     xp: 0,
     baseCombat: 6,
@@ -1071,7 +1093,14 @@ function show(id) {
   eid(id).classList.add('active');
 }
 function showTitle()   { syncTitle(); show('s-title'); }
-function gotoKingdom() { syncKingdom(); show('s-kingdom'); }
+function gotoKingdom() {
+  if (G.day > 30 || (G.day === 30 && G.time >= 360)) {
+    endGame('Dawn breaks on Day 30. Pyraxis has claimed Lyra.');
+    return;
+  }
+  syncKingdom();
+  show('s-kingdom');
+}
 function gotoMarket()  { mTab_cur = 'w'; syncMarket(); show('s-market'); }
 function gotoTravel()  { syncTravel(); show('s-travel'); }
 
@@ -1080,7 +1109,9 @@ function gotoTravel()  { syncTravel(); show('s-travel'); }
 // ═══════════════════════════════════════════════════
 
 function syncKingdom() {
-  eid('p-day').textContent  = G.day;
+  if (eid('p-day-lbl')) eid('p-day-lbl').textContent = `Day ${G.day}`;
+  if (eid('p-time'))    eid('p-time').textContent    = formatTime(G.time);
+  syncSkyWidget();
   eid('p-gold').textContent = G.gold;
   eid('p-hp').textContent   = `${G.hp}/${G.maxHp}`;
   eid('bar-hp').style.width = pct(G.hp, G.maxHp);
@@ -1115,7 +1146,8 @@ function syncKingdom() {
   const warnEl = eid('pyraxis-warn');
   if (warnEl) {
     const daysToAshenvale = travelDays(k.id, 'ashenvale');
-    const showWarn = k.id !== 'ashenvale' && (G.day + daysToAshenvale >= 30);
+    const arrivalDay = G.day + daysToAshenvale;
+    const showWarn = k.id !== 'ashenvale' && (arrivalDay >= 30);
     warnEl.style.display = showWarn ? '' : 'none';
   }
   const restBtn = eid('btn-rest');
@@ -1147,7 +1179,9 @@ function openRestModal() {
   if (G.hp >= G.maxHp) return;
   const cost = innCost();
   eid('rest-inn-cost').textContent = `${cost}g`;
-  eid('btn-rest-inn').disabled = G.gold < cost;
+  const canAfford = G.gold >= cost;
+  ['btn-inn-4','btn-inn-6','btn-inn-8'].forEach(id => { const b = eid(id); if (b) b.disabled = !canAfford; });
+  eid('rest-enc-risk').textContent = isNight() ? '⚠️ 50% night risk' : '25% risk';
   eid('rest-modal').classList.add('on');
 }
 
@@ -1155,39 +1189,41 @@ function closeRestModal() {
   eid('rest-modal').classList.remove('on');
 }
 
-function restInn() {
+function restInnFor(hours) {
   const cost = innCost();
   if (G.gold < cost) return;
   G.gold -= cost;
-  G.hp = G.maxHp;
-  G.day++;
-  addLog(`🏨 Rested at the inn — fully healed. (−${cost}g)`, 'lok');
+  const pct = hours === 4 ? 0.40 : hours === 6 ? 0.65 : 1.0;
+  const heal = Math.min(Math.round(G.maxHp * pct), G.maxHp - G.hp);
+  G.hp = Math.min(G.hp + heal, G.maxHp);
+  advanceTime(hours * 60);
   closeRestModal();
+  addLog(`🏨 Rested ${hours}h at the inn — healed ${heal} HP. (−${cost}g)`, 'lok');
   syncKingdom();
   flash('bar-hp', true); flashGold('p-gold');
 }
 
-function restCountryside() {
+function restOutdoorFor(hours) {
+  const chance = encounterChance();
   closeRestModal();
-  G.day++;
-  const heal = Math.min(Math.floor(G.maxHp / 2) + G.resilience, G.maxHp - G.hp);
-  G.hp += heal;
-  if (Math.random() < 0.40) {
+  const pct = hours === 4 ? 0.25 : hours === 6 ? 0.50 : 0.75;
+  const heal = Math.min(Math.round(G.maxHp * pct), G.maxHp - G.hp);
+  G.hp = Math.min(G.hp + heal, G.maxHp);
+  advanceTime(hours * 60);
+  if (Math.random() < chance) {
     const pool = [...G.kingdom.monsters, 'bandit'];
     const pick  = pool[Math.floor(Math.random() * pool.length)];
     const mData = { ...(MONSTERS[pick] || MONSTERS.bandit), _key: pick };
-    addLog(`🌿 Rested outdoors — healed ${heal} HP. A ${mData.name} attacks!`, 'lbad');
+    addLog(`🌿 Rested ${hours}h outdoors — healed ${heal} HP. A ${mData.name} attacks!`, 'lbad');
     beginCombat(mData, false);
   } else {
-    addLog(`🌿 Rested outdoors — healed ${heal} HP. Quiet night.`, 'lok');
+    addLog(`🌿 Rested ${hours}h outdoors — healed ${heal} HP. Peaceful rest.`, 'lok');
     syncKingdom();
     flash('bar-hp', true);
   }
 }
 
-function rest() {  // legacy stub — replaced by openRestModal
-  openRestModal();
-}
+function rest() { openRestModal(); } // legacy stub
 
 function explore() {
   const k = G.kingdom;
@@ -1208,6 +1244,60 @@ function challengeDragon() {
 }
 
 // ═══════════════════════════════════════════════════
+//  TIME HELPERS
+// ═══════════════════════════════════════════════════
+
+function advanceTime(minutes) {
+  G.time = (G.time || 360) + minutes;
+  while (G.time >= 1440) { G.time -= 1440; G.day++; }
+}
+function isNight() { return G.time < 360 || G.time >= 1260; }
+function formatTime(t) {
+  const mins = (t === undefined ? 0 : t);
+  const h24  = Math.floor(mins / 60);
+  const m    = mins % 60;
+  const h12  = h24 % 12 || 12;
+  const ampm = h24 < 12 ? 'AM' : 'PM';
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+function encounterChance() { return isNight() ? 0.5 : 0.25; }
+
+function syncSkyWidget() {
+  const bgEl   = eid('sky-bg');
+  const bodyEl = eid('sky-body');
+  if (!bgEl || !bodyEl) return;
+  const t = G.time || 360;
+
+  // Sky background color
+  let skyColor;
+  if      (t < 300 || t >= 1320) skyColor = '#0a1a3a'; // deep night
+  else if (t < 420 || t >= 1200) skyColor = '#c45e18'; // dawn/dusk
+  else                            skyColor = '#3a7fd4'; // day
+  bgEl.setAttribute('fill', skyColor);
+
+  const night = (t < 360 || t >= 1260);
+  let frac, fill, r;
+  if (night) {
+    const elapsed = t >= 1260 ? t - 1260 : t + 180; // minutes into night (0=9PM, 540=6AM)
+    frac  = elapsed / 540;
+    fill  = '#dde8ff';
+    r     = '3.5';
+  } else {
+    frac  = (t - 360) / 900; // minutes into day (0=6AM, 900=9PM)
+    fill  = '#FFD700';
+    r     = '4.5';
+  }
+  const angleDeg = 180 - frac * 180;
+  const angleRad = angleDeg * Math.PI / 180;
+  const cx = 22 + 21 * Math.cos(angleRad);
+  const cy = 26 - 21 * Math.sin(angleRad);
+  bodyEl.setAttribute('cx', cx.toFixed(1));
+  bodyEl.setAttribute('cy', cy.toFixed(1));
+  bodyEl.setAttribute('fill', fill);
+  bodyEl.setAttribute('r', r);
+}
+
+// ═══════════════════════════════════════════════════
 //  TRAVEL
 // ═══════════════════════════════════════════════════
 
@@ -1218,7 +1308,8 @@ function syncTravel() {
   KINGDOMS.forEach(k => {
     const isCur = k.id === G.kingdom.id;
     const days  = travelDays(G.kingdom.id, k.id);
-    const tight = !isCur && (G.day + days > 30);
+    const arrivalDay = G.day + days;
+    const tight = !isCur && (arrivalDay > 30 || (arrivalDay === 30 && G.time >= 360));
     const btn   = document.createElement('button');
     btn.className = 'kopt' + (isCur ? ' here' : '');
     btn.disabled  = isCur;
@@ -1242,58 +1333,82 @@ function finishTravel() {
   pendingTravel = null;
   G.kingdom = k;
   G.day += days;
-  if (G.day > 30) { endGame('Time ran out. On Day 30, Pyraxis claimed Lyra.'); return; }
+  // G.time stays unchanged — you arrive at the same time of day
   addLog(`🗺️ Arrived in ${k.name} after ${days} day${days > 1 ? 's' : ''}.`, 'lhi');
-  gotoKingdom();
+  gotoKingdom(); // deadline check lives in gotoKingdom
 }
 
 function doTravel(k, days) {
-  pendingTravel = { k, days };
-  if (Math.random() < 0.25) {
+  pendingTravel = { k, days, combatQueue: [] };
+
+  // Build one combat-encounter roll per travel day (at current departure-time odds)
+  const chance = encounterChance();
+  for (let d = 0; d < days; d++) {
+    if (Math.random() < chance) {
+      const pool = [...k.monsters, 'bandit'];
+      pendingTravel.combatQueue.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+  }
+
+  // One non-combat road event per trip (treasure / merchant / priest)
+  if (Math.random() < 0.20) {
     const r = Math.random();
     if (r < 0.40) {
-      // Bandit ambush — always a bandit
-      const mData = { ...MONSTERS.bandit, _key: 'bandit' };
-      const goldLoss = Math.max(6, rand(6, 24));
-      showEvt('sprites/bandit.png', 'Bandit Ambush!',
-        `A gang of bandits blocks the road to ${k.name}. Fight them off or hand over your gold.`,
-        [
-          { label: '⚔️ Fight!',        cls: 'btn-red',   fn: () => fightBandit(mData, goldLoss) },
-          { label: `💰 Hand over ${goldLoss}g`, cls: 'btn-gray', fn: () => submitToBandit(goldLoss) },
-        ]
-      );
-      return; // travel completes inside bandit handlers
-    } else if (r < 0.60) {
       const found = rand(12, 42);
       G.gold += found;
       showEvt('sprites/treasure.png', 'Lucky Find!', `An abandoned chest on the road. +${found} gold!`);
       addLog(`💰 Found chest on the road! +${found} gold.`, 'lgld');
-    } else if (r < 0.80) {
+    } else if (r < 0.70) {
       const gift = totalPotions() < MAX_POTIONS ? POTIONS[Math.floor(Math.random()*POTIONS.length)] : null;
-      if (gift) { G.potions[gift.id]++; }
+      if (gift) G.potions[gift.id]++;
       showEvt('sprites/merchant.png', 'Traveling Merchant', gift ? `A kind merchant gifted you a ${gift.name}!` : 'A merchant tried to gift you a potion, but your bag is full!');
       addLog(gift ? `${gift.icon} A merchant gifted you a ${gift.name}.` : '🧙 Merchant gift declined — bag full.', 'lok');
     } else {
       const healed = G.maxHp - G.hp;
       G.hp = G.maxHp;
-      showEvt('sprites/priest.png', 'Traveling Priest', `A wandering priest lays hands on you, restoring your health fully.${healed > 0 ? ` (+${healed} HP)` : ' (You were already at full health.)'}`);
+      showEvt('sprites/priest.png', 'Traveling Priest', `A wandering priest restores your health fully.${healed > 0 ? ` (+${healed} HP)` : ' (Already at full health.)'}`);
       addLog(`✝️ A traveling priest restored you to full health.${healed > 0 ? ` +${healed} HP.` : ''}`, 'lok');
     }
   }
-  finishTravel();
+
+  nextTravelEncounter();
+}
+
+function nextTravelEncounter() {
+  if (!pendingTravel) { finishTravel(); return; }
+  const queue = pendingTravel.combatQueue;
+  if (!queue || queue.length === 0) { finishTravel(); return; }
+
+  const monKey = queue.shift();
+  if (monKey === 'bandit') {
+    const mData    = { ...MONSTERS.bandit, _key: 'bandit' };
+    const goldLoss = Math.max(6, rand(6, 24));
+    showEvt('sprites/bandit.png', 'Bandit Ambush!',
+      `A gang of bandits blocks the road to ${pendingTravel.k.name}. Fight them off or hand over your gold.`,
+      [
+        { label: '⚔️ Fight!',                cls: 'btn-red',  fn: () => fightBandit(mData, goldLoss) },
+        { label: `💰 Hand over ${goldLoss}g`, cls: 'btn-gray', fn: () => submitToBandit(goldLoss) },
+      ]
+    );
+    return;
+  }
+  const mData = { ...(MONSTERS[monKey] || MONSTERS.rat), _key: monKey };
+  addLog(`⚔️ A ${mData.name} attacks on the road!`, 'lbad');
+  beginCombat(mData, false);
+  CB.afterCombat = nextTravelEncounter;
 }
 
 function submitToBandit(goldLoss) {
   G.gold = Math.max(0, G.gold - goldLoss);
   addLog(`🦹 Submitted to bandits. Lost ${goldLoss}g.`, 'lbad');
   flashGold('p-gold');
-  finishTravel();
+  nextTravelEncounter();
 }
 
 function fightBandit(mData, goldLoss) {
   addLog(`⚔️ You draw your weapon against the bandits!`, 'lok');
-  beginCombat(mData, false);          // CB is reset inside here
-  CB.afterCombat    = finishTravel;   // attach after init
+  beginCombat(mData, false);
+  CB.afterCombat    = nextTravelEncounter;
   CB.banditGoldLoss = goldLoss;
 }
 
@@ -2302,6 +2417,7 @@ function cFlee() {
 function combatWin() {
   CB.over = true;
   lockCombat();
+  advanceTime(CB.m.hp); // 1 minute per enemy HP point
   const gold = rand(CB.m.glo, CB.m.ghi);
   G.gold += gold;
   if (CB.m._key && G.monsterLog[CB.m._key]) G.monsterLog[CB.m._key].wins++;
@@ -2338,6 +2454,7 @@ function combatWin() {
 function combatLose() {
   CB.over = true;
   lockCombat();
+  advanceTime(CB.m.hp); // 1 minute per enemy HP point
   if (CB.m._key && G.monsterLog[CB.m._key]) G.monsterLog[CB.m._key].losses++;
 
   if (CB.boss) {
